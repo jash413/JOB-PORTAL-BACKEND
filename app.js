@@ -1,7 +1,9 @@
 // app.js
 const express = require('express');
-const docsRoutes = require('./routes/docsRoutes');
+const expressListEndpoints = require('express-list-endpoints');
+const jobCateRoutes = require('./routes/jobCateRoutes');
 const errorHandler = require('./middlewares/errorHandler');
+
 
 const app = express();
 
@@ -13,8 +15,14 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Job Portal API');
 });
 
-// Routes
-app.use('/api/v1', docsRoutes);   // API docs route
+// Use the jobCate routes
+app.use('/api/v1', jobCateRoutes);
+
+// Route to list all available API endpoints
+app.get('/api/v1/routes', (req, res) => {
+  const routes = expressListEndpoints(app);
+  res.json(routes);
+});
 
 // Error handler middleware
 app.use(errorHandler);
