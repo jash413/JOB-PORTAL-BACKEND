@@ -1,46 +1,125 @@
 // utils/aggregator.js
+const { Op } = require("sequelize");
 const { paginate } = require("./pagination");
 
 /**
- * Dynamically aggregates data from different models with Sequelize and pagination.
- *
- * @param {Object} baseModel - The base Sequelize model (e.g., Candidate).
- * @param {Array} includeModels - Array of objects defining models and their relations.
- *        Each object can define:
- *        - model: Sequelize model to include (e.g., JobCategory)
- *        - as: Alias for the model (e.g., 'jobCategory')
- *        - attributes: Fields to select from the model
- * @param {Object} query - Request query object containing pagination parameters.
- * @param {Object} where - (Optional) Where clause for filtering the base model.
- * @param {Array} attributes - (Optional) Fields to select from the base model.
- *
- * @returns {Object} Aggregated data from the models, with pagination meta info.
+ * Creates dynamic allowed filters including date ranges.
+ * @param {string[]} fields - Standard fields for filtering.
+ * @param {string[]} rangeFields - Fields supporting range filtering.
+ * @returns {Object} Allowed filters object.
+ */
+const createAllowedFilters = (fields = [], rangeFields = []) => {
+  const standardFilters = fields.reduce(
+    (acc, field) => ({
+      ...acc,
+      [field]: { field, operator: Op.eq },
+    }),
+    {}
+  );
+
+  const rangeFilters = rangeFields.reduce(
+    (acc, field) => ({
+      ...acc,
+      [field]: { field, operator: Op.between },
+    }),
+    {}
+  );
+
+  return { ...standardFilters, ...rangeFilters };
+};
+
+/**
+ * Builds Sequelize `where` clause from query parameters and allowed filters.
+ * @param {Object} body - Request body with filter parameters.
+ * @param {Object} allowedFilters - Mapping of query keys to Sequelize fields and operators.
+ * @param {string[]} searchFields - Fields for search operation.
+ * @returns {Object} Sequelize `where` clause.
+ */
+const buildWhereClause = (body, allowedFilters, searchFields = []) => {
+  const where = Object.entries(allowedFilters).reduce(
+    (acc, [filterKey, { field, operator }]) => {
+      if (body[filterKey] === undefined) return acc;
+
+      if (operator === Op.between) {
+        const from = body[`${filterKey}_from`];
+        const to = body[`${filterKey}_to`];
+        if (from !== undefined && to !== undefined) {
+          acc[field] = { [operator]: [from, to] };
+        }
+      } else {
+        acc[field] = { [operator]: body[filterKey] };
+      }
+      return acc;
+    },
+    {}
+  );
+
+  if (body.search) {
+    where[Op.or] = searchFields.map((field) => ({
+      [field]: { [Op.like]: `%${body.search}%` },
+    }));
+  }
+
+  return where;
+};
+
+/**
+ * Builds Sequelize order clause for sorting.
+ * @param {Object} sortBy, sortOrder - Sort parameters.
+ * @param {string[]} allowedSortFields - Allowed fields for sorting.
+ * @returns {Array} Sequelize `order` clause.
+ */
+const buildOrderClause = ({ sortBy, sortOrder = "ASC" }, allowedSortFields) =>
+  sortBy && allowedSortFields.includes(sortBy)
+    ? [[sortBy, sortOrder.toUpperCase()]]
+    : [];
+
+/**
+ * Aggregates data from different models with Sequelize, including filtering, searching, sorting, and pagination.
+ * @param {Object} params - Configuration object.
+ * @param {Object} params.baseModel - The base Sequelize model.
+ * @param {Object[]} [params.includeModels=[]] - Models and their relations to include.
+ * @param {Object} params.body - Request body with query parameters.
+ * @param {string[]} [params.standardFields=[]] - Fields supporting equality filtering.
+ * @param {string[]} [params.rangeFields=[]] - Fields supporting range filtering.
+ * @param {string[]} [params.searchFields=[]] - Fields supporting search queries.
+ * @param {string[]} [params.allowedSortFields=[]] - Fields allowed for sorting.
+ * @param {string[]} [params.attributes=null] - Fields to select from the base model.
+ * @returns {Promise<Object>} Aggregated data with pagination, sorting, and searching meta info.
+ * @throws {Error} If data aggregation fails.
  */
 const aggregateData = async ({
   baseModel,
   includeModels = [],
-  query,
-  where = {},
+  body,
+  standardFields = [],
+  rangeFields = [],
+  searchFields = [],
+  allowedSortFields = [],
   attributes = null,
 }) => {
   try {
-    // Set up options for the Sequelize query
+    const allowedFilters = createAllowedFilters(standardFields, rangeFields);
+    const where = buildWhereClause(body, allowedFilters, searchFields);
+    const order = buildOrderClause(
+      { sortBy: body.sortBy, sortOrder: body.sortOrder },
+      allowedSortFields
+    );
+
     const options = {
       where,
       attributes,
       include: includeModels,
+      order,
     };
 
-    // Use the paginate utility to handle pagination logic and fetch paginated results
-    const paginatedResults = await paginate(
+    return await paginate(
       baseModel.findAndCountAll.bind(baseModel),
-      query,
+      body,
       options
     );
-
-    return paginatedResults;
   } catch (error) {
-    throw new Error(`Error in data aggregation: ${error.message}`);
+    throw new Error(`Data aggregation failed: ${error.message}`);
   }
 };
 

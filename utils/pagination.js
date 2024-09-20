@@ -1,51 +1,49 @@
 // utils/pagination.js
 
 /**
- * Calculate pagination parameters based on request query.
- * @param {Object} query - Request query object containing pagination parameters.
- * @returns {Object} - Pagination parameters (limit, offset, currentPage, isPaginated).
+ * Calculate pagination parameters based on request body.
+ * @param {Object} body - Request body containing pagination parameters.
+ * @param {number} [body.page=1] - Current page number.
+ * @param {number} [body.limit] - Number of items per page.
+ * @returns {Object} Pagination parameters.
  */
-const getPagination = (query) => {
-  const page = parseInt(query.page, 10) || 1;
-  const limit = query.limit !== undefined ? parseInt(query.limit, 10) : null;
+const getPagination = ({ page = 1, limit }) => {
+  const parsedPage = Math.max(1, parseInt(page, 10));
+  const parsedLimit =
+    limit !== undefined ? Math.max(1, parseInt(limit, 10)) : null;
 
-  // If limit is not passed or invalid (<= 0), no pagination is applied
-  if (!limit || limit <= 0) {
-    return {
-      limit: null,
-      offset: null,
-      currentPage: 1,
-      isPaginated: false,
-    };
-  }
-
-  const offset = (page - 1) * limit;
-
-  return {
-    limit,
-    offset,
-    currentPage: page,
-    isPaginated: true,
-  };
+  return parsedLimit
+    ? {
+        limit: parsedLimit,
+        offset: (parsedPage - 1) * parsedLimit,
+        currentPage: parsedPage,
+        isPaginated: true,
+      }
+    : {
+        limit: null,
+        offset: null,
+        currentPage: 1,
+        isPaginated: false,
+      };
 };
 
 /**
- * Format the response data to include pagination metadata if pagination is enabled.
- * @param {Object} data - Sequelize response from `findAndCountAll()` or similar methods.
- * @param {number|null} limit - Number of items per page. If null, all items are returned without pagination metadata.
- * @param {number} page - The current page number.
- * @returns {Object} - A formatted response object with data and pagination metadata.
+ * Format the response data with pagination metadata.
+ * @param {Object} data - Sequelize response from findAndCountAll().
+ * @param {number} data.count - Total number of items.
+ * @param {Array} data.rows - Retrieved records.
+ * @param {number|null} limit - Number of items per page.
+ * @param {number} currentPage - Current page number.
+ * @returns {Object} Formatted response with data and pagination metadata.
  */
-const getPagingData = (data, limit, page) => {
-  const { count: totalItems, rows: records } = data;
-
-  // If limit is null, return all records without pagination
-  if (limit === null) {
-    return { records };
-  }
+const getPagingData = (
+  { count: totalItems, rows: records },
+  limit,
+  currentPage
+) => {
+  if (limit === null) return { records };
 
   const totalPages = Math.ceil(totalItems / limit);
-  const currentPage = page;
   const hasNextPage = currentPage < totalPages;
   const hasPreviousPage = currentPage > 1;
 
@@ -64,34 +62,21 @@ const getPagingData = (data, limit, page) => {
 };
 
 /**
- * Middleware for paginating database results.
- * @param {Function} modelFindMethod - Sequelize model method (e.g., `findAndCountAll`) to retrieve paginated data.
- * @param {Object} query - Request query object containing page and limit.
- * @param {Object} options - Additional Sequelize options (like where, order).
- * @returns {Object} - Paginated results with pagination metadata.
+ * Middleware for paginating database results using POST request body.
+ * @param {Function} modelFindMethod - Sequelize model method to retrieve data.
+ * @param {Object} body - Request body with pagination parameters.
+ * @param {Object} [options={}] - Additional Sequelize options.
+ * @returns {Promise<Object>} Paginated results with metadata.
+ * @throws {Error} If pagination fails.
  */
-const paginate = async (modelFindMethod, query, options = {}) => {
+const paginate = async (modelFindMethod, body, options = {}) => {
   try {
-    const { limit, offset, currentPage, isPaginated } = getPagination(query);
-
-    let data;
-    if (isPaginated) {
-      // Paginated query
-      data = await modelFindMethod({
-        ...options,
-        limit,
-        offset,
-      });
-    } else {
-      // Fetch all records without limit
-      data = await modelFindMethod({
-        ...options,
-      });
-    }
-
+    const { limit, offset, currentPage, isPaginated } = getPagination(body);
+    const queryOptions = isPaginated ? { ...options, limit, offset } : options;
+    const data = await modelFindMethod(queryOptions);
     return getPagingData(data, limit, currentPage);
   } catch (error) {
-    throw new Error(`Pagination error: ${error.message}`);
+    throw new Error(`Pagination failed: ${error.message}`);
   }
 };
 
