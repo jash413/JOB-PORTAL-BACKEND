@@ -26,10 +26,14 @@ app.use('/api/v1', employerRoutes);
 // Use the candidate routes
 app.use('/api/v1', candidateRoutes);
 
-// Route to list all available API endpoints
-app.get('/api/v1/routes', (req, res) => {
-  const routes = expressListEndpoints(app);
-  res.json(routes);
+// Route to list employer routes
+app.get('/api/v1/employer-routes', (req, res) => {
+  res.send(expressListEndpoints(employerRoutes));
+});
+
+// Route to list candidate routes
+app.get('/api/v1/candidate-routes', (req, res) => {
+  res.send(expressListEndpoints(candidateRoutes));
 });
 
 // Error handler middleware
