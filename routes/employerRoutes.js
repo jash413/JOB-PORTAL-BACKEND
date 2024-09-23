@@ -4,18 +4,18 @@ const router = express.Router();
 const employerController = require('../controllers/employerController');
 
 // Get all employers
-router.get('/employers', employerController.getAllEmployers);
+router.get('/', employerController.getAllEmployers);
 
 // Get an employer by ID
-router.get('/employers/:id', employerController.getEmployerById);
+router.get('/:id', employerController.getEmployerById);
 
 // Create a new employer
-router.post('/employers', employerController.createEmployer);
+router.post('/', employerController.createEmployer);
 
 // Update an existing employer
-router.put('/employers/:id', employerController.updateEmployer);
+router.put('/:id', employerController.updateEmployer);
 
 // Delete an employer by ID
-router.delete('/employers/:id', employerController.deleteEmployer);
+router.delete('/:id', employerController.deleteEmployer);
 
 module.exports = router;

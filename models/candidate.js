@@ -1,5 +1,6 @@
 // models/candidate.js
 const { DataTypes } = require("sequelize");
+const JobCate = require("./jobCate"); // Import JobCate model
 const sequelize = require("../config/db"); // Sequelize initialized in config/db.js
 
 const Candidate = sequelize.define(
@@ -64,5 +65,14 @@ const Candidate = sequelize.define(
     timestamps: true, // CreatedAt, UpdatedAt fields
   }
 );
+
+// Update the existing table if the table schema changes
+Candidate.sync({ alter: true });
+
+// Define a relationship between Candidate and JobCate models
+Candidate.belongsTo(JobCate, {
+  foreignKey: "can_job_cate",
+  as: "job_category",
+});
 
 module.exports = Candidate;

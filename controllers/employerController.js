@@ -1,6 +1,13 @@
 // controllers/employerController.js
 const Employer = require("../models/employer");
 
+/**
+ * @swagger
+ * tags:
+ *   name: Employers
+ *   description: API for managing employers.
+ */
+
 // Get all employers
 exports.getAllEmployers = async (req, res) => {
   try {
