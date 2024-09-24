@@ -4,7 +4,7 @@ const router = express.Router();
 const employerController = require('../controllers/employerController');
 
 // Get all employers
-router.get('/', employerController.getAllEmployers);
+router.post('/get-employers', employerController.getAllEmployers);
 
 // Get an employer by ID
 router.get('/:id', employerController.getEmployerById);

@@ -54,4 +54,6 @@ const Employer = sequelize.define(
   }
 );
 
+Employer.sync({ force: true }); // Use this to create the table if it doesn't exist
+
 module.exports = Employer;
