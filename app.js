@@ -1,7 +1,9 @@
 const express = require('express');
 const jobCateRoutes = require('./routes/jobCateRoutes');
 const employerRoutes = require('./routes/employerRoutes');
+const candidateExpRoutes = require("./routes/candidateExpRoutes");
 const candidateRoutes = require('./routes/candidateRoutes');
+const candidateEduRoutes = require("./routes/candidateEduRoutes");
 const errorHandler = require('./middlewares/errorHandler');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -31,6 +33,8 @@ const swaggerOptions = {
     './controllers/jobCateController.js',
     './controllers/employerController.js',
     './controllers/candidateController.js',
+    './controllers/candidateExpController.js',
+    './controllers/candidateEduController.js',
   ],
 };
 
@@ -53,6 +57,12 @@ app.use('/api/v1/employers', employerRoutes);
 
 // Use the candidate routes
 app.use('/api/v1/candidates', candidateRoutes);
+
+// Use the candidate experience routes
+app.use('/api/v1/experience', candidateExpRoutes);
+
+// Use the candidate education routes
+app.use('/api/v1/education', candidateEduRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

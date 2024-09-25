@@ -67,7 +67,7 @@ const Candidate = sequelize.define(
 );
 
 // Update the existing table if the table schema changes
-Candidate.sync({ alter: true });
+// Candidate.sync({ alter: true });
 
 // Define a relationship between Candidate and JobCate models
 Candidate.belongsTo(JobCate, {
