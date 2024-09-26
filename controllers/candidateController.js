@@ -18,6 +18,8 @@ const { aggregateData } = require("../utils/aggregator");
  *   post:
  *     summary: Retrieve a list of candidates with filters, pagination, and sorting
  *     tags: [Candidates]
+ *      security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -126,6 +128,8 @@ exports.getAllCandidates = async (req, res) => {
  *   get:
  *     summary: Retrieve a single candidate by ID
  *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -186,6 +190,8 @@ exports.getCandidateById = async (req, res) => {
  *   post:
  *     summary: Create a new candidate with profile image and resume upload
  *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -288,6 +294,8 @@ exports.createCandidate = async (req, res) => {
  *   put:
  *     summary: Update a candidate with profile image and resume upload
  *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -373,6 +381,8 @@ exports.updateCandidate = async (req, res) => {
  *   delete:
  *     summary: Delete a candidate by ID
  *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

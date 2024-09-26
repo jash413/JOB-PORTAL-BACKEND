@@ -15,6 +15,8 @@ const Candidate = require("../models/candidate");
  *   post:
  *     summary: Get all education records for a candidate
  *     tags: [CandidateEducation]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -92,6 +94,8 @@ exports.getEducationByCandidate = async (req, res) => {
  *   get:
  *     summary: Get a single education record by ID
  *     tags: [CandidateEducation]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: edu_id
@@ -132,6 +136,8 @@ exports.getEducationById = async (req, res) => {
  *   post:
  *     summary: Create a new education record
  *     tags: [CandidateEducation]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -177,7 +183,6 @@ exports.getEducationById = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
 exports.createEducation = async (req, res) => {
   try {
     const {
@@ -208,10 +213,12 @@ exports.createEducation = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1//education/{edu_id}:
+ * /api/v1/education/{edu_id}:
  *   put:
  *     summary: Update an education record by ID
  *     tags: [CandidateEducation]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: edu_id
@@ -262,10 +269,12 @@ exports.updateEducation = async (req, res) => {
 
 /**
  * @swagger
- * /education/{edu_id}:
+ * /api/v1/education/{edu_id}:
  *   delete:
  *     summary: Delete an education record by ID
  *     tags: [CandidateEducation]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: edu_id

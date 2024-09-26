@@ -15,6 +15,8 @@ const Candidate = require("../models/candidate");
  *   post:
  *     summary: Get all experience details for a candidate with filters, pagination, and sorting
  *     tags: [Candidate Experience]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -34,9 +36,9 @@ const Candidate = require("../models/candidate");
  *               sortOrder:
  *                 type: string
  *                 description: Sort order (asc or desc)
- *               can_code :
- *                type: integer
- *                description: Candidate code
+ *               can_code:
+ *                 type: integer
+ *                 description: Candidate code
  *     responses:
  *       200:
  *         description: Experience details retrieved successfully
@@ -92,6 +94,8 @@ exports.getExpDetailsByCandidate = async (req, res) => {
  *   get:
  *     summary: Get a single experience detail by ID
  *     tags: [Candidate Experience]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: exp_id
@@ -111,7 +115,6 @@ exports.getExpDetailsByCandidate = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
 // Get a single experience detail by ID
 exports.getExpDetailById = async (req, res) => {
   try {
@@ -134,6 +137,8 @@ exports.getExpDetailById = async (req, res) => {
  *   post:
  *     summary: Create a new experience detail
  *     tags: [Candidate Experience]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -167,7 +172,6 @@ exports.getExpDetailById = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
 // Create a new experience detail
 exports.createExpDetail = async (req, res) => {
   try {
@@ -203,6 +207,8 @@ exports.createExpDetail = async (req, res) => {
  *   put:
  *     summary: Update an existing experience detail
  *     tags: [Candidate Experience]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: exp_id
@@ -241,7 +247,6 @@ exports.createExpDetail = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
 // Update an existing experience detail
 exports.updateExpDetail = async (req, res) => {
   try {
@@ -284,6 +289,8 @@ exports.updateExpDetail = async (req, res) => {
  *   delete:
  *     summary: Delete an experience detail
  *     tags: [Candidate Experience]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: exp_id
@@ -299,7 +306,6 @@ exports.updateExpDetail = async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-
 // Delete an experience detail
 exports.deleteExpDetail = async (req, res) => {
   try {

@@ -6,7 +6,8 @@ module.exports = (req, res, next) => {
   if (!token) return res.status(401).json({ error: "Access denied" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const actualToken = token.split(" ")[1];
+    const decoded = jwt.verify(actualToken, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (ex) {

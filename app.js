@@ -4,6 +4,7 @@ const employerRoutes = require('./routes/employerRoutes');
 const candidateExpRoutes = require("./routes/candidateExpRoutes");
 const candidateRoutes = require('./routes/candidateRoutes');
 const candidateEduRoutes = require("./routes/candidateEduRoutes");
+const loginRoutes = require("./routes/loginRoutes");
 const errorHandler = require('./middlewares/errorHandler');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -35,6 +36,7 @@ const swaggerOptions = {
     './controllers/candidateController.js',
     './controllers/candidateExpController.js',
     './controllers/candidateEduController.js',
+    './controllers/loginController.js',
   ],
 };
 
@@ -48,6 +50,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.get('/', (req, res) => {
   res.send('Welcome to the Job Portal API');
 });
+
+// Use the login routes
+app.use('/api/v1/auth', loginRoutes);
 
 // Use the jobCate routes
 app.use('/api/v1/job-categories', jobCateRoutes);

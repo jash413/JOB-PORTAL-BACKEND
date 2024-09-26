@@ -14,6 +14,8 @@ const { aggregateData } = require("../utils/aggregator");
  *   post:
  *     summary: Retrieve a paginated list of job categories with filtering, searching, and sorting options
  *     tags: [Job Categories]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -124,6 +126,8 @@ exports.getAllJobCategories = async (req, res) => {
  *   get:
  *     summary: Get a single job category by ID
  *     tags: [Job Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -169,6 +173,8 @@ exports.getJobCategoryById = async (req, res) => {
  *   post:
  *     summary: Create a new job category
  *     tags: [Job Categories]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -210,6 +216,8 @@ exports.createJobCategory = async (req, res) => {
  *   put:
  *     summary: Update a job category by ID
  *     tags: [Job Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -268,6 +276,8 @@ exports.updateJobCategory = async (req, res) => {
  *   delete:
  *     summary: Delete a job category by ID
  *     tags: [Job Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -14,6 +14,8 @@ const { aggregateData } = require("../utils/aggregator");
  *   post:
  *     summary: Retrieve a list of employers with dynamic filters, sorting, searching, and pagination
  *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -134,6 +136,8 @@ exports.getAllEmployers = async (req, res) => {
  *   get:
  *     summary: Retrieve a specific employer by ID
  *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -188,6 +192,8 @@ exports.getEmployerById = async (req, res) => {
  *   post:
  *     summary: Create a new employer
  *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -256,6 +262,8 @@ exports.createEmployer = async (req, res) => {
  *   put:
  *     summary: Update an existing employer by ID
  *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -339,6 +347,8 @@ exports.updateEmployer = async (req, res) => {
  *   delete:
  *     summary: Delete an employer by ID
  *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -2,20 +2,21 @@
 const express = require('express');
 const router = express.Router();
 const jobCateController = require('../controllers/jobCateController');
+const authMiddleware = require("../middlewares/authMiddleware");
 
 // Get all job categories
-router.post('/get-job-categories', jobCateController.getAllJobCategories);
+router.post('/get-job-categories',authMiddleware, jobCateController.getAllJobCategories);
 
 // Get a single job category by cate_code
-router.get('/:id', jobCateController.getJobCategoryById);
+router.get('/:id',authMiddleware, jobCateController.getJobCategoryById);
 
 // Create a new job category
-router.post('/', jobCateController.createJobCategory);
+router.post('/',authMiddleware, jobCateController.createJobCategory);
 
 // Update a job category by cate_code
-router.put('/:id', jobCateController.updateJobCategory);
+router.put('/:id',authMiddleware, jobCateController.updateJobCategory);
 
 // Delete a job category by cate_code
-router.delete('/:id', jobCateController.deleteJobCategory);
+router.delete('/:id',authMiddleware, jobCateController.deleteJobCategory);
 
 module.exports = router;
