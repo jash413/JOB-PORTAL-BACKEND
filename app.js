@@ -29,6 +29,10 @@ const swaggerOptions = {
         url: 'http://localhost:3000',  // Base URL for all endpoints
         description: 'Local server',
       },
+      {
+        url: 'https://job-portal-backend-production.up.railway.app',  // Base URL for all endpoints
+        description: 'Development server',
+      }
     ],
   },
   apis: [
