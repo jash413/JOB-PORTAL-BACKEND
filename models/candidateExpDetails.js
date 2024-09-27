@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");  // Assuming sequelize config is here
 const Candidate = require("../models/candidate");
 
-const CandidateExpDetails = sequelize.define("CandidateExpDetails", {
+const CandidateExpDetails = sequelize.define("candidate_exp_details", {
   exp_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -35,10 +35,6 @@ const CandidateExpDetails = sequelize.define("CandidateExpDetails", {
   can_code: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: "candidate_mast", 
-      key: "can_code",
-    },
   },
 });
 // Define a relationship between Candidate and JobCate models

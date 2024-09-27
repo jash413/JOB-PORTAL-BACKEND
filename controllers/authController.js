@@ -1,6 +1,13 @@
-const Login = require("../models/loginMast"); // Adjust the path if necessary
+const Login = require("../models/loginMast");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+/**
+ * @swagger
+ * tags:
+ *  name: Authentication
+ *  description: API for user authentication
+ */
 
 /**
  * @swagger
@@ -91,7 +98,7 @@ exports.register = async (req, res) => {
  *                 token:
  *                   type: string
  *                 user:
- *                   $ref: '#/components/schemas/Login'
+ *                  type: object
  *       400:
  *         description: Invalid email or password
  *       500:
@@ -113,7 +120,7 @@ exports.login = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.login_id, login_type: user.login_type },
+      { login_id: user.login_id, login_type: user.login_type },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -150,7 +157,7 @@ exports.login = async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Login'
+ *              type: object
  *       401:
  *         description: Unauthorized
  *       404:

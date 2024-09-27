@@ -7,6 +7,7 @@ const Login = sequelize.define(
     login_type: {
       type: DataTypes.STRING,
       allowNull: false,
+      enm: ["AMN", "CND", "EMP"],
     },
     login_id: {
       type: DataTypes.INTEGER,

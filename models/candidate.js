@@ -6,6 +6,10 @@ const sequelize = require("../config/db"); // Sequelize initialized in config/db
 const Candidate = sequelize.define(
   "Candidate",
   {
+    login_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     can_code: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -65,9 +69,6 @@ const Candidate = sequelize.define(
     timestamps: true, // CreatedAt, UpdatedAt fields
   }
 );
-
-// Update the existing table if the table schema changes
-// Candidate.sync({ alter: true });
 
 // Define a relationship between Candidate and JobCate models
 Candidate.belongsTo(JobCate, {

@@ -5,6 +5,10 @@ const sequelize = require("../config/db"); // Assuming Sequelize is initialized 
 const Employer = sequelize.define(
   "Employer",
   {
+    login_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     cmp_code: {
       type: DataTypes.INTEGER,
       primaryKey: true,

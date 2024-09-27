@@ -37,10 +37,6 @@ const CandidateEducation = sequelize.define(
     can_code: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: "candidate_mast",
-        key: "can_code",
-      },
     },
   },
   {

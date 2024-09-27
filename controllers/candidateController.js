@@ -18,7 +18,7 @@ const { aggregateData } = require("../utils/aggregator");
  *   post:
  *     summary: Retrieve a list of candidates with filters, pagination, and sorting
  *     tags: [Candidates]
- *      security:
+ *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
@@ -270,6 +270,7 @@ exports.createCandidate = async (req, res) => {
 
     // Create candidate record
     const newCandidate = await Candidate.create({
+      login_id: req.user.login_id,
       can_name,
       can_email,
       can_mobn,
@@ -410,6 +411,7 @@ exports.deleteCandidate = async (req, res) => {
 
     res.status(200).json({ message: "Candidate deleted successfully" });
   } catch (error) {
+    console.error("Error deleting candidate:", error);
     res.status(500).json({ error: "Error deleting candidate" });
   }
 };

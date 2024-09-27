@@ -5,8 +5,8 @@ const Candidate = require("../models/candidate");
 /**
  * @swagger
  * tags:
- *   name: CandidateEducation
- *   description: Candidate Education management
+ *   name: Candidate Education
+ *   description: API for managing candidate education details
  */
 
 /**
@@ -14,7 +14,7 @@ const Candidate = require("../models/candidate");
  * /api/v1/education/get-edu-details:
  *   post:
  *     summary: Get all education records for a candidate
- *     tags: [CandidateEducation]
+ *     tags: [Candidate Education]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -93,7 +93,7 @@ exports.getEducationByCandidate = async (req, res) => {
  * /api/v1/education/{edu_id}:
  *   get:
  *     summary: Get a single education record by ID
- *     tags: [CandidateEducation]
+ *     tags: [Candidate Education]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -135,7 +135,7 @@ exports.getEducationById = async (req, res) => {
  * /api/v1/education/:
  *   post:
  *     summary: Create a new education record
- *     tags: [CandidateEducation]
+ *     tags: [Candidate Education]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -216,7 +216,7 @@ exports.createEducation = async (req, res) => {
  * /api/v1/education/{edu_id}:
  *   put:
  *     summary: Update an education record by ID
- *     tags: [CandidateEducation]
+ *     tags: [Candidate Education]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -272,7 +272,7 @@ exports.updateEducation = async (req, res) => {
  * /api/v1/education/{edu_id}:
  *   delete:
  *     summary: Delete an education record by ID
- *     tags: [CandidateEducation]
+ *     tags: [Candidate Education]
  *     security:
  *       - bearerAuth: []
  *     parameters:

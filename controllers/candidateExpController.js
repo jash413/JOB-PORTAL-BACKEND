@@ -90,7 +90,7 @@ exports.getExpDetailsByCandidate = async (req, res) => {
 
 /**
  * @swagger
- * /experience/{exp_id}:
+ * /api/v1/experience/{exp_id}:
  *   get:
  *     summary: Get a single experience detail by ID
  *     tags: [Candidate Experience]
@@ -203,7 +203,7 @@ exports.createExpDetail = async (req, res) => {
 
 /**
  * @swagger
- * /experience/{exp_id}:
+ * /api/v1/experience/{exp_id}:
  *   put:
  *     summary: Update an existing experience detail
  *     tags: [Candidate Experience]
@@ -285,7 +285,7 @@ exports.updateExpDetail = async (req, res) => {
 
 /**
  * @swagger
- * /experience/{exp_id}:
+ * /api/v1/experience/{exp_id}:
  *   delete:
  *     summary: Delete an experience detail
  *     tags: [Candidate Experience]

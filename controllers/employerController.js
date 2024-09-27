@@ -243,6 +243,7 @@ exports.createEmployer = async (req, res) => {
     const { cmp_name, cmp_email, cmp_mobn, cmp_webs, emp_loca, emp_addr } =
       req.body;
     const newEmployer = await Employer.create({
+      login_id: req.user.login_id,
       cmp_name,
       cmp_email,
       cmp_mobn,
