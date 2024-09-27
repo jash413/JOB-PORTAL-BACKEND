@@ -9,8 +9,12 @@ const authRoutes = require("./routes/authRoutes");
 const errorHandler = require('./middlewares/errorHandler');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const cors = require('cors');
 
 const app = express();
+
+// CORS middleware
+app.use(cors());
 
 // Middleware to parse JSON requests
 app.use(express.json());
