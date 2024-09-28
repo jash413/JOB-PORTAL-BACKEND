@@ -32,4 +32,7 @@ router.delete(
   candidateController.deleteCandidate
 ); // Delete a candidate
 
+// View job posts (filtered/paginated) from employers who have access to candidate's profile
+router.post("/job-posts", candidateController.getJobPosts);
+
 module.exports = router;

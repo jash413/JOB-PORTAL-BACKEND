@@ -39,4 +39,10 @@ router.delete(
   employerController.deleteEmployer
 );
 
+// Request access to a candidate's profile
+router.post("/request-access", employerController.requestAccessToCandidate);
+
+// View approved candidates (filtered/paginated)
+router.post("/approved-candidates", employerController.getApprovedCandidates);
+
 module.exports = router;

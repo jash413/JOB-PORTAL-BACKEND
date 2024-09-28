@@ -1,4 +1,7 @@
 const Employer = require("../models/employer");
+const Candidate = require("../models/candidate");
+const AccessRequest = require("../models/accessRequest");
+const ProfileAccess = require("../models/profileAccess");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -378,5 +381,216 @@ exports.deleteEmployer = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: "Error deleting employer" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/employer/request-access:
+ *   post:
+ *     summary: Request access to view a candidate's profile for an employer
+ *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               employerId:
+ *                 type: integer
+ *                 description: ID of the employer requesting access
+ *               candidateId:
+ *                 type: integer
+ *                 description: ID of the candidate for whom access is requested
+ *     responses:
+ *       201:
+ *         description: Access request successfully submitted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message
+ *                 request:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: ID of the access request
+ *                     employerId:
+ *                       type: integer
+ *                       description: ID of the employer
+ *                     candidateId:
+ *                       type: integer
+ *                       description: ID of the candidate
+ *                     status:
+ *                       type: string
+ *                       description: Status of the request (e.g., pending, approved, rejected)
+ *       400:
+ *         description: An access request for this candidate already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Error submitting the access request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *                 error:
+ *                   type: object
+ *                   description: Error details
+ */
+exports.requestAccessToCandidate = async (req, res) => {
+  const { employerId, candidateId } = req.body;
+
+  try {
+    // Check if an access request already exists
+    const existingRequest = await AccessRequest.findOne({
+      where: { employerId, candidateId, status: "pending" },
+    });
+    if (existingRequest) {
+      return res.status(400).json({ message: "Access request already exists" });
+    }
+
+    // Create a new access request
+    const request = await AccessRequest.create({ employerId, candidateId });
+    res.status(201).json({ message: "Access request submitted.", request });
+  } catch (error) {
+    res.status(500).json({ message: "Error submitting access request", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/employer/approved-candidates:
+ *   post:
+ *     summary: Retrieve a list of candidates whose profiles have been approved for access by the employer
+ *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               employerId:
+ *                 type: integer
+ *                 description: ID of the employer
+ *               search:
+ *                 type: string
+ *                 description: Search term for candidate name or email
+ *               sort:
+ *                 type: object
+ *                 description: Sorting options for candidates
+ *                 properties:
+ *                   field:
+ *                     type: string
+ *                     description: Field to sort by (e.g., grantedAt)
+ *                   order:
+ *                     type: string
+ *                     enum: [asc, desc]
+ *                     description: The sort order (asc for ascending, desc for descending)
+ *               pagination:
+ *                 type: object
+ *                 description: Pagination options
+ *                 properties:
+ *                   page:
+ *                     type: integer
+ *                   pageSize:
+ *                     type: integer
+ *     responses:
+ *       200:
+ *         description: A list of approved candidates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       candidateId:
+ *                         type: integer
+ *                         description: ID of the candidate
+ *                       can_name:
+ *                         type: string
+ *                         description: Candidate name
+ *                       can_email:
+ *                         type: string
+ *                         description: Candidate email
+ *                       grantedAt:
+ *                         type: string
+ *                         format: date-time
+ *                         description: Date when the access was granted
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of candidates
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages
+ *                     pageSize:
+ *                       type: integer
+ *                       description: Number of items per page
+ *       500:
+ *         description: Error fetching approved candidates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *                 error:
+ *                   type: object
+ *                   description: Error details
+ */
+exports.getApprovedCandidates = async (req, res) => {
+  try {
+    const standardFields = ["employerId"]; // Filter by employer ID
+    const includeModels = [{
+      model: Candidate,
+      attributes: ["can_name", "can_email"],
+    },]; // Include candidate model
+    const searchFields = ["Candidate.can_name", "Candidate.can_email"]; // Allow searching by candidate name and email
+    const allowedSortFields = ["grantedAt"]; // Sort by the date the access was granted
+
+    const aggregatedData = await aggregateData({
+      baseModel: ProfileAccess,
+      includeModels,
+      body: req.body, // Including filters, pagination, sorting from the request body
+      standardFields,
+      searchFields,
+      allowedSortFields,
+    });
+
+    res.status(200).json(aggregatedData);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching candidates", error });
   }
 };

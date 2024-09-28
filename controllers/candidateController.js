@@ -2,6 +2,7 @@
 
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
+const ProfileAccess = require("../models/profileAccess");
 const createFileUploadConfig = require("../utils/fileUpload");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -413,5 +414,121 @@ exports.deleteCandidate = async (req, res) => {
   } catch (error) {
     console.error("Error deleting candidate:", error);
     res.status(500).json({ error: "Error deleting candidate" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/candidates/job-posts:
+ *   post:
+ *     summary: Retrieve job posts available for a candidate, filtered by access and search criteria
+ *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               filters:
+ *                 type: object
+ *                 description: Fields to filter by
+ *                 properties:
+ *                   candidateId:
+ *                     type: integer
+ *                     description: Filter by candidate ID to see job posts for a specific candidate
+ *               search:
+ *                 type: string
+ *                 description: Search string for partial matches in job titles
+ *               sort:
+ *                 type: object
+ *                 description: Fields to sort by
+ *                 properties:
+ *                   field:
+ *                     type: string
+ *                     description: The field to sort by (e.g., createdAt)
+ *                   order:
+ *                     type: string
+ *                     enum: [asc, desc]
+ *                     description: The sort order (asc for ascending, desc for descending)
+ *               pagination:
+ *                 type: object
+ *                 description: Pagination options
+ *                 properties:
+ *                   page:
+ *                     type: integer
+ *                   pageSize:
+ *                     type: integer
+ *     responses:
+ *       200:
+ *         description: List of job posts accessible to the candidate
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       jobId:
+ *                         type: integer
+ *                         description: Job post ID
+ *                       job_title:
+ *                         type: string
+ *                         description: Title of the job
+ *                       employer:
+ *                         type: object
+ *                         properties:
+ *                           employerId:
+ *                             type: integer
+ *                             description: Employer ID
+ *                           cmp_name:
+ *                             type: string
+ *                             description: Name of the employer
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         description: Date when the job post was created
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of job posts
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages
+ *                     pageSize:
+ *                       type: integer
+ *                       description: Number of items per page
+ *       500:
+ *         description: Error fetching job posts
+ */
+exports.getJobPosts = async (req, res) => {
+  try {
+    const standardFields = ["candidateId"]; // Only requests with candidateId
+    const includeModels = ["Employer.JobPosts"]; // Include job posts from employers
+    const searchFields = ["JobPost.job_title"]; // Allow searching by job title
+    const allowedSortFields = ["createdAt"]; // Sort by creation date of the job post
+
+    const aggregatedData = await aggregateData({
+      baseModel: ProfileAccess,
+      includeModels,
+      body: req.body, // Including filters, pagination, sorting from the request body
+      standardFields,
+      searchFields,
+      allowedSortFields,
+    });
+
+    res.status(200).json(aggregatedData);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching job posts", error });
   }
 };
