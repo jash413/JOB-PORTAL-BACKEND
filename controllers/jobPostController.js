@@ -15,6 +15,8 @@ const { aggregateData } = require("../utils/aggregator");
  *   post:
  *     summary: Create a new job post
  *     tags: [Job Posts]
+ *     security:
+ *      - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -63,7 +65,7 @@ exports.createJobPost = async (req, res) => {
 
     const cmp_details = await Employer.findOne({
       where: { login_id: req.user.login_id },
-    });
+    }).then((cmp) => cmp.toJSON());
 
     const newJobPost = await JobPost.create({
       job_title,
@@ -72,11 +74,12 @@ exports.createJobPost = async (req, res) => {
       job_location,
       salary_range,
       required_skills,
-      cmp_id: cmp_details.cmp_id,
+      cmp_id: cmp_details.cmp_code,
     });
 
     res.status(201).json(newJobPost);
   } catch (error) {
+    console.log("Error creating job post: ", error);
     res.status(500).json({ error: "Error creating job post" });
   }
 };
@@ -87,6 +90,8 @@ exports.createJobPost = async (req, res) => {
  *   post:
  *     summary: Retrieve a list of job posts with filters, sorting, searching, and pagination
  *     tags: [Job Posts]
+ *     security:
+ *      - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -230,6 +235,8 @@ exports.getAllJobPosts = async (req, res) => {
  *   get:
  *     summary: Retrieve a specific job post by ID
  *     tags: [Job Posts]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -299,6 +306,8 @@ exports.getJobPostById = async (req, res) => {
  *   put:
  *     summary: Update an existing job post
  *     tags: [Job Posts]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -372,6 +381,8 @@ exports.updateJobPost = async (req, res) => {
  *   delete:
  *     summary: Delete a job post
  *     tags: [Job Posts]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -136,6 +136,7 @@ exports.getRequests = async (req, res) => {
 
     res.status(200).json(aggregatedData);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Error fetching pending requests", error });
   }
 };

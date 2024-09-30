@@ -2,6 +2,7 @@
 
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
+const JobPost = require("../models/jobPost");
 const ProfileAccess = require("../models/profileAccess");
 const createFileUploadConfig = require("../utils/fileUpload");
 const { aggregateData } = require("../utils/aggregator");
@@ -514,7 +515,11 @@ exports.deleteCandidate = async (req, res) => {
 exports.getJobPosts = async (req, res) => {
   try {
     const standardFields = ["candidateId"]; // Only requests with candidateId
-    const includeModels = ["Employer.JobPosts"]; // Include job posts from employers
+    const includeModels = [{
+      model: JobPost,
+      as: "JobPost",
+      attributes: ["job_title"]
+    }]; // Include job posts from employers
     const searchFields = ["JobPost.job_title"]; // Allow searching by job title
     const allowedSortFields = ["createdAt"]; // Sort by creation date of the job post
 
@@ -529,6 +534,7 @@ exports.getJobPosts = async (req, res) => {
 
     res.status(200).json(aggregatedData);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Error fetching job posts", error });
   }
 };

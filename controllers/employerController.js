@@ -386,7 +386,7 @@ exports.deleteEmployer = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/employer/request-access:
+ * /api/v1/employers/request-access:
  *   post:
  *     summary: Request access to view a candidate's profile for an employer
  *     tags: [Employers]
@@ -399,9 +399,6 @@ exports.deleteEmployer = async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               employerId:
- *                 type: integer
- *                 description: ID of the employer requesting access
  *               candidateId:
  *                 type: integer
  *                 description: ID of the candidate for whom access is requested
@@ -456,19 +453,28 @@ exports.deleteEmployer = async (req, res) => {
  *                   description: Error details
  */
 exports.requestAccessToCandidate = async (req, res) => {
-  const { employerId, candidateId } = req.body;
-
   try {
+    const { candidateId } = req.body;
+    const employerLoginId = req.user.login_id;
+
+    // Get the employer ID
+    const employer = await Employer.findOne({
+      where: { login_id: employerLoginId },
+    }).then((employer) => employer.toJSON());
+
     // Check if an access request already exists
     const existingRequest = await AccessRequest.findOne({
-      where: { employerId, candidateId, status: "pending" },
+      where: { employerId: employer.cmp_code, candidateId, status: "pending" },
     });
     if (existingRequest) {
       return res.status(400).json({ message: "Access request already exists" });
     }
 
     // Create a new access request
-    const request = await AccessRequest.create({ employerId, candidateId });
+    const request = await AccessRequest.create({
+      employerId: employer.cmp_code,
+      candidateId,
+    });
     res.status(201).json({ message: "Access request submitted.", request });
   } catch (error) {
     res.status(500).json({ message: "Error submitting access request", error });
@@ -477,7 +483,7 @@ exports.requestAccessToCandidate = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/employer/approved-candidates:
+ * /api/v1/employers/approved-candidates:
  *   post:
  *     summary: Retrieve a list of candidates whose profiles have been approved for access by the employer
  *     tags: [Employers]
@@ -573,10 +579,13 @@ exports.requestAccessToCandidate = async (req, res) => {
 exports.getApprovedCandidates = async (req, res) => {
   try {
     const standardFields = ["employerId"]; // Filter by employer ID
-    const includeModels = [{
-      model: Candidate,
-      attributes: ["can_name", "can_email"],
-    },]; // Include candidate model
+    const includeModels = [
+      {
+        model: Candidate,
+        attributes: ["can_name", "can_email"],
+        as: "Candidate"
+      },
+    ]; // Include candidate model
     const searchFields = ["Candidate.can_name", "Candidate.can_email"]; // Allow searching by candidate name and email
     const allowedSortFields = ["grantedAt"]; // Sort by the date the access was granted
 
@@ -591,6 +600,7 @@ exports.getApprovedCandidates = async (req, res) => {
 
     res.status(200).json(aggregatedData);
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Error fetching candidates", error });
   }
 };

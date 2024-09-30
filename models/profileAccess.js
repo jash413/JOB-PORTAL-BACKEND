@@ -2,6 +2,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const Employer = require("./employer");
+const JobPost = require("./jobPost");
 const Candidate = require("./candidate");
 
 const ProfileAccess = sequelize.define("ProfileAccess", {
@@ -26,5 +27,15 @@ const ProfileAccess = sequelize.define("ProfileAccess", {
     defaultValue: DataTypes.NOW,
   },
 });
+
+ProfileAccess.belongsTo(Candidate,{
+  as: "Candidate",
+  foreignKey: "candidateId",
+});
+
+ProfileAccess.belongsTo(JobPost,{
+  as: "JobPost",
+  foreignKey: "employerId"
+})
 
 module.exports = ProfileAccess;

@@ -32,4 +32,14 @@ const AccessRequest = sequelize.define("AccessRequest", {
   reviewedAt: DataTypes.DATE,
 });
 
+AccessRequest.belongsTo(Employer, {
+  foreignKey: "employerId",
+  as: "Employer",
+});
+
+AccessRequest.belongsTo(Candidate, {
+  foreignKey: "candidateId",
+  as: "Candidate",
+});
+
 module.exports = AccessRequest;

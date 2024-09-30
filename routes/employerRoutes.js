@@ -40,7 +40,11 @@ router.delete(
 );
 
 // Request access to a candidate's profile
-router.post("/request-access", employerController.requestAccessToCandidate);
+router.post(
+  "/request-access",
+  authMiddleware(["EMP"]),
+  employerController.requestAccessToCandidate
+);
 
 // View approved candidates (filtered/paginated)
 router.post("/approved-candidates", employerController.getApprovedCandidates);

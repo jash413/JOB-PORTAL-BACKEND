@@ -5,27 +5,27 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 router.post(
-  "/job-posts",
+  "/",
   authMiddleware(["EMP"]),
   jobPostController.createJobPost
 );
 router.post(
-  "/job-posts/get-job-posts",
+  "/get-job-posts",
   authMiddleware(["EMP"]),
   jobPostController.getAllJobPosts
 );
 router.get(
-  "/job-posts/:id",
+  "/:id",
   authMiddleware(["EMP"]),
   jobPostController.getJobPostById
 );
 router.put(
-  "/job-posts/:id",
+  "/:id",
   authMiddleware(["EMP"]),
   jobPostController.updateJobPost
 );
 router.delete(
-  "/job-posts/:id",
+  "/:id",
   authMiddleware(["EMP"]),
   jobPostController.deleteJobPost
 );

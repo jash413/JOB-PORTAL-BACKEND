@@ -167,7 +167,7 @@ exports.login = async (req, res) => {
  */
 exports.getProfile = async (req, res) => {
   try {
-    const user = await Login.findByPk(req.user.id);
+    const user = await Login.findByPk(req.user.login_id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     res.json(user);
