@@ -306,3 +306,177 @@ exports.grantProfileAccess = async (req, res) => {
     res.status(500).json({ message: "Error granting profile access", error });
   }
 };
+
+/**
+ * @swagger
+ * /api/v1/admin/job-post-access:
+ *   post:
+ *     summary: Add job post access for a candidate
+ *     description: Grants access to a specific job post for a candidate who already has profile access
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - employerId
+ *               - candidateId
+ *               - jobPostId
+ *             properties:
+ *               employerId:
+ *                 type: string
+ *                 description: ID of the employer granting access
+ *               candidateId:
+ *                 type: string
+ *                 description: ID of the candidate receiving access
+ *               jobPostId:
+ *                 type: string
+ *                 description: ID of the job post to grant access to
+ *     responses:
+ *       200:
+ *         description: Job post access granted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Job post access granted
+ *       400:
+ *         description: Access not granted to the candidate
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Access not granted to this candidate
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error granting job post access
+ *                 error:
+ *                   type: object
+ *                   description: Error object
+ */
+exports.addJobPostAccess = async (req, res) => {
+  const { employerId, candidateId, jobPostId } = req.body;
+  try {
+    const accessRequest = await ProfileAccess.findOne({
+      where: { employerId, candidateId },
+    });
+
+    if (!accessRequest) {
+      return res
+        .status(400)
+        .json({ message: "Access not granted to this candidate" });
+    }
+
+    accessRequest.accessibleJobPostsByCandidate.push(jobPostId);
+    await accessRequest.save();
+
+    res.status(200).json({ message: "Job post access granted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error granting job post access", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/admin/job-post-access:
+ *   delete:
+ *     summary: Remove job post access for a candidate
+ *     description: Revokes access to a specific job post for a candidate
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - employerId
+ *               - candidateId
+ *               - jobPostId
+ *             properties:
+ *               employerId:
+ *                 type: string
+ *                 description: ID of the employer revoking access
+ *               candidateId:
+ *                 type: string
+ *                 description: ID of the candidate losing access
+ *               jobPostId:
+ *                 type: string
+ *                 description: ID of the job post to revoke access from
+ *     responses:
+ *       200:
+ *         description: Job post access removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Job post access removed
+ *       400:
+ *         description: Access not granted to the candidate
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Access not granted to this candidate
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error removing job post access
+ *                 error:
+ *                   type: object
+ *                   description: Error object
+ */
+exports.removeJobPostAccess = async (req, res) => {
+  const { employerId, candidateId, jobPostId } = req.body;
+  try {
+    const accessRequest = await ProfileAccess.findOne({
+      where: { employerId, candidateId },
+    });
+
+    if (!accessRequest) {
+      return res
+        .status(400)
+        .json({ message: "Access not granted to this candidate" });
+    }
+
+    accessRequest.accessibleJobPostsByCandidate = accessRequest.accessibleJobPostsByCandidate.filter(
+      (id) => id !== jobPostId
+    );
+    await accessRequest.save();
+
+    res.status(200).json({ message: "Job post access removed" });
+  } catch (error) {
+    res.status(500).json({ message: "Error removing job post access", error });
+  }
+};

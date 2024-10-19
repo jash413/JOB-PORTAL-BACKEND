@@ -10,7 +10,6 @@
     "mysql2": "^3.11.3",
     "nodemon": "^3.1.5",
     "sequelize": "^6.37.3",
-    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "scripts": {
@@ -27,5 +26,9 @@
     "create-model": "npx sequelize-cli model:generate --name $1 --attributes $2",
     "create-migration": "npx sequelize-cli migration:generate --name $1",
     "create-seed": "npx sequelize-cli seed:generate --name $1"
+  },
+  "devDependencies": {
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8"
   }
 }

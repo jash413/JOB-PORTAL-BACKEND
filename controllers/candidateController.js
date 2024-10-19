@@ -3,6 +3,7 @@
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
 const JobPost = require("../models/jobPost");
+const Employer = require("../models/employer");
 const ProfileAccess = require("../models/profileAccess");
 const createFileUploadConfig = require("../utils/fileUpload");
 const { aggregateData } = require("../utils/aggregator");
@@ -514,25 +515,30 @@ exports.deleteCandidate = async (req, res) => {
  */
 exports.getJobPosts = async (req, res) => {
   try {
-    const standardFields = ["candidateId"]; // Only requests with candidateId
-    const includeModels = [{
-      model: JobPost,
-      as: "JobPost",
-      attributes: ["job_title"]
-    }]; // Include job posts from employers
-    const searchFields = ["JobPost.job_title"]; // Allow searching by job title
-    const allowedSortFields = ["createdAt"]; // Sort by creation date of the job post
-
-    const aggregatedData = await aggregateData({
-      baseModel: ProfileAccess,
-      includeModels,
-      body: req.body, // Including filters, pagination, sorting from the request body
-      standardFields,
-      searchFields,
-      allowedSortFields,
+    const jobPostsData = await aggregateData({
+      baseModel: JobPost,
+      includeModels: [
+        {
+          model: Employer,
+          as: "employer",
+          attributes: ["cmp_name"],
+        },
+      ],
+      body: {
+        employerId: ProfileAccess.findAll({
+          where: { candidateId: req.body.candidateId },
+          attributes: ["employerId"],
+        }),
+        job_id: ProfileAccess.findAll({
+          where: { candidateId: req.body.candidateId },
+          attributes: ["accessibleJobPostsByCandidate"],
+        }),
+      },
+      standardFields: [],
+      searchFields: ["job_title"], // Allow searching by job title
+      allowedSortFields: ["createdAt"], // Sort by creation date of the job post
     });
-
-    res.status(200).json(aggregatedData);
+    res.status(200).json(jobPostsData);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error fetching job posts", error });

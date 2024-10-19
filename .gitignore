@@ -131,3 +131,6 @@ dist
 
 # uploads directory
 uploads
+
+# Swagger JSON
+swagger.json

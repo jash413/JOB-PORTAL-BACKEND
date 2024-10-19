@@ -57,13 +57,13 @@ const JobPost = sequelize.define(
 JobPost.belongsTo(JobCate, {
   foreignKey: "job_cate",
   targetKey: "cate_code",
-  as : 'job_category'
+  as: "job_category",
 });
 
 JobPost.belongsTo(Employer, {
   foreignKey: "cmp_id",
   targetKey: "cmp_code",
-  as : 'employer'
+  as: "employer",
 });
 
 module.exports = JobPost;

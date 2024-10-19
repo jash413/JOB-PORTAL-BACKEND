@@ -26,6 +26,10 @@ const ProfileAccess = sequelize.define("ProfileAccess", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+  accessibleJobPostsByCandidate: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+  },
 });
 
 ProfileAccess.belongsTo(Candidate,{
