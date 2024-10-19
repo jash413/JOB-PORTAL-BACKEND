@@ -1,6 +1,5 @@
 const Login = require("../models/loginMast");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const authService = require("../services/authService");
 
 /**
  * @swagger
@@ -45,23 +44,7 @@ const jwt = require("jsonwebtoken");
  */
 exports.register = async (req, res) => {
   try {
-    const { login_name, login_email, login_mobile, login_pass, login_type } =
-      req.body;
-
-    // Hash the password before saving
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(login_pass, salt);
-
-    // Create the new user in the database
-    const newUser = await Login.create({
-      login_name,
-      login_email,
-      login_mobile,
-      login_pass: hashedPassword,
-      login_type,
-      reg_date: new Date(), // Registration date
-    });
-
+    const newUser = await authService.register(req.body);
     res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -107,29 +90,161 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { login_email, login_pass } = req.body;
-
-    // Check if user exists
-    const user = await Login.findOne({ where: { login_email } });
-    if (!user)
-      return res.status(400).json({ error: "Invalid email or password" });
-
-    // Check password
-    const validPassword = await bcrypt.compare(login_pass, user.login_pass);
-    if (!validPassword)
-      return res.status(400).json({ error: "Invalid email or password" });
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { login_id: user.login_id, login_type: user.login_type },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
-
+    const { token, user } = await authService.login(login_email, login_pass);
     res.json({ token, user });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(400).json({ error: error.message });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/google:
+ *   post:
+ *     summary: Authenticate or register a user with Google
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Google ID token obtained from the client-side Google Sign-In
+ *     responses:
+ *       200:
+ *         description: User authenticated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for authenticated requests
+ *                 user:
+ *                   type: object
+ *                   description: User information
+ *                   properties:
+ *                     login_id:
+ *                       type: string
+ *                     login_name:
+ *                       type: string
+ *                     login_email:
+ *                       type: string
+ *                     login_type:
+ *                       type: string
+ *       400:
+ *         description: Invalid token or authentication failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.googleAuth = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const payload = await authService.verifyGoogleToken(token);
+    const user = await authService.findOrCreateGoogleUser(payload);
+    const jwtToken = authService.generateToken(user);
+    res.json({ token: jwtToken, user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/change-password:
+ *   put:
+ *     summary: Change user's password
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPass
+ *               - newPass
+ *             properties:
+ *               oldPass:
+ *                 type: string
+ *                 description: User's current password
+ *               newPass:
+ *                 type: string
+ *                 description: User's new password
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 login_id:
+ *                   type: string
+ *                 login_name:
+ *                   type: string
+ *                 login_email:
+ *                   type: string
+ *                 login_type:
+ *                   type: string
+ *       400:
+ *         description: Invalid request or password change failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *       401:
+ *         description: Unauthorized - User not authenticated
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPass, newPass } = req.body;
+    const user = await authService.changePassword(
+      req.user.login_id,
+      oldPass,
+      newPass
+    );
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };
 
