@@ -30,15 +30,20 @@ const authService = require("../services/authService");
  *               login_mobile:
  *                 type: string
  *                 example: "1234567890"
+ *                 description: Mobile number must be 10 digits long
  *               login_pass:
  *                 type: string
- *                 example: "password123"
+ *                 example: "testPassword@1234"
+ *                 description: Password must be between 8 and 20 characters long and contain at least one lowercase letter, one uppercase letter, and one number
  *               login_type:
  *                 type: string
  *                 example: "AMN"
+ *                 enum: ["AMN", "CND", "EMP"]
  *     responses:
  *       201:
  *         description: User registered successfully
+ *       400:
+ *         description: Bad request - validation error
  *       500:
  *         description: Internal server error
  */
@@ -47,7 +52,11 @@ exports.register = async (req, res) => {
     const newUser = await authService.register(req.body);
     res.status(201).json(newUser);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
   }
 };
 
@@ -81,7 +90,7 @@ exports.register = async (req, res) => {
  *                 token:
  *                   type: string
  *                 user:
- *                  type: object
+ *                   type: object
  *       400:
  *         description: Invalid email or password
  *       500:
@@ -93,7 +102,11 @@ exports.login = async (req, res) => {
     const { token, user } = await authService.login(login_email, login_pass);
     res.json({ token, user });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
   }
 };
 
@@ -125,49 +138,24 @@ exports.login = async (req, res) => {
  *               properties:
  *                 token:
  *                   type: string
- *                   description: JWT token for authenticated requests
  *                 user:
  *                   type: object
- *                   description: User information
- *                   properties:
- *                     login_id:
- *                       type: string
- *                     login_name:
- *                       type: string
- *                     login_email:
- *                       type: string
- *                     login_type:
- *                       type: string
  *       400:
  *         description: Invalid token or authentication failed
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message
  */
 exports.googleAuth = async (req, res) => {
   try {
     const { token } = req.body;
-    const payload = await authService.verifyGoogleToken(token);
-    const user = await authService.findOrCreateGoogleUser(payload);
-    const jwtToken = authService.generateToken(user);
+    const { token: jwtToken, user } = await authService.googleLogin(token);
     res.json({ token: jwtToken, user });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
   }
 };
 
@@ -191,48 +179,17 @@ exports.googleAuth = async (req, res) => {
  *             properties:
  *               oldPass:
  *                 type: string
- *                 description: User's current password
  *               newPass:
  *                 type: string
- *                 description: User's new password
  *     responses:
  *       200:
  *         description: Password changed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 login_id:
- *                   type: string
- *                 login_name:
- *                   type: string
- *                 login_email:
- *                   type: string
- *                 login_type:
- *                   type: string
  *       400:
  *         description: Invalid request or password change failed
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message
  *       401:
  *         description: Unauthorized - User not authenticated
  *       500:
  *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   description: Error message
  */
 exports.changePassword = async (req, res) => {
   try {
@@ -244,7 +201,219 @@ exports.changePassword = async (req, res) => {
     );
     res.json(user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Initiate forgot password process
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - login_email
+ *             properties:
+ *               login_email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Reset token sent successfully
+ *       400:
+ *         description: User not found
+ *       500:
+ *         description: Server error
+ */
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { login_email } = req.body;
+    await authService.forgotPassword(login_email);
+    res.json({ message: "Password reset email sent successfully" });
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     summary: Reset password using token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid or expired token
+ *       500:
+ *         description: Server error
+ */
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    await authService.resetPassword(token, newPassword);
+    res.json({ message: "Password reset successfully" });
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/send-email-verification:
+ *   post:
+ *     summary: Verify user's email
+ *     tags: [Authentication]
+ *     security:
+ *      - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Email verification link sent successfully
+ *       400:
+ *         description: Invalid or expired token
+ *       500:
+ *         description: Server error
+ */
+exports.sendEmailVerification = async (req, res) => {
+  try {
+    await authService.sendVerificationEmail(req.user);
+    res.json({ message: "Email verification link sent successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to send email verification link" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/verify-email:
+ *   get:
+ *     summary: Verify user's email
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired token
+ *       500:
+ *         description: Server error
+ */
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    await authService.verifyEmail(token);
+    res.json({ message: "Email verified successfully" });
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/send-phone-otp:
+ *   post:
+ *     summary: Send OTP for phone verification
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+exports.sendPhoneOTP = async (req, res) => {
+  try {
+    await authService.sendPhoneVerificationOTP(req.user);
+    res.json({ message: "OTP sent successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to send OTP" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/verify-phone-otp:
+ *   post:
+ *     summary: Verify phone OTP
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - otp
+ *             properties:
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Phone verified successfully
+ *       400:
+ *         description: Invalid OTP
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+exports.verifyPhoneOTP = async (req, res) => {
+  try {
+    const { otp } = req.body;
+    const user = await authService.verifyPhoneOTP(req.user.login_id, otp);
+    res.json({ message: "Phone verified successfully", user });
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
   }
 };
 
@@ -269,10 +438,6 @@ exports.changePassword = async (req, res) => {
  *     responses:
  *       200:
  *         description: The user's profile information
- *         content:
- *           application/json:
- *             schema:
- *              type: object
  *       401:
  *         description: Unauthorized
  *       404:
@@ -284,9 +449,8 @@ exports.getProfile = async (req, res) => {
   try {
     const user = await Login.findByPk(req.user.login_id);
     if (!user) return res.status(404).json({ error: "User not found" });
-
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An unexpected error occurred" });
   }
 };

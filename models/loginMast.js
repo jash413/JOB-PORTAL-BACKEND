@@ -23,6 +23,9 @@ const Login = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
     login_mobile: {
       type: DataTypes.STRING,
@@ -52,6 +55,14 @@ const Login = sequelize.define(
     phone_ver_status: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+    },
+    reset_token: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    reset_token_expiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {
