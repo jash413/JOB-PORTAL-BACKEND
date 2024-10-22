@@ -64,6 +64,14 @@ const Login = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    phone_otp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    phone_otp_expiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "login_mast", // Assuming table name is `login_mast`
