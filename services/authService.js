@@ -297,6 +297,30 @@ const authService = {
     );
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
 
+    // Send verification email
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.login_email,
+      subject: "Email Verification",
+      html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email</p>`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        throw new AuthenticationError("Failed to send email");
+      }
+    });
+
     // Implement email sending logic here
     // You can use nodemailer or any other email service
   },
@@ -308,6 +332,30 @@ const authService = {
    */
   async sendPasswordResetEmail(email, token) {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    // Send Professsional Email 
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset",
+      html: `<p>Click <a href="${resetUrl}">here</a> to reset your password</p>`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+        throw new AuthenticationError("Failed to send email");
+      }
+    });
   },
 
   /**
