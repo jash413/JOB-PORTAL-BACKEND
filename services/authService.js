@@ -366,20 +366,7 @@ const authService = {
   async sendSMS(phoneNumber, message) {
     try {
       const response = await axios.get(
-        "http://msg.jmdinfotek.in/api/mt/SendSMS",
-        {
-          params: {
-            user: process.env.SMS_API_USER,
-            password: process.env.SMS_API_PASSWORD,
-            senderid: process.env.SMS_API_SENDER_ID,
-            channel: "Trans",
-            DCS: "0",
-            flashsms: "0",
-            number: phoneNumber,
-            text: encodeURIComponent(message),
-            route: "07",
-          },
-        }
+        `http://msg.jmdinfotek.in/api/mt/SendSMS?user=${process.env.SMS_API_USER}&password=${process.env.SMS_API_PASSWORD}&senderid=${process.env.SMS_API_SENDER_ID}&channel=Trans&DCS=0&flashsms=0&number=${phoneNumber}&text=${message}&route=07`
       );
 
       if (response.status !== 200) {
