@@ -45,8 +45,8 @@ const authService = {
       login_pass: hashedPassword,
       login_type,
       reg_date: new Date(),
-      phone_verified: false,
-      email_ver_status: false,
+      phone_ver_status: 0,
+      email_ver_status: 0,
     });
 
     // Send verification email and phone OTP
