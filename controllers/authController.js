@@ -372,7 +372,7 @@ exports.sendPhoneOTP = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/auth/verify-phone-otp:
+ * /api/v1/auth/verify-phone:
  *   post:
  *     summary: Verify phone OTP
  *     tags: [Authentication]
