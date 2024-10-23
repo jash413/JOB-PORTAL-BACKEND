@@ -40,17 +40,9 @@ const Login = sequelize.define(
       allowNull: true,
       defaultValue: DataTypes.NOW,
     },
-    email_ver_token: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     email_ver_status: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-    },
-    phone_ver_token: {
-      type: DataTypes.STRING,
-      allowNull: true,
     },
     phone_ver_status: {
       type: DataTypes.INTEGER,
