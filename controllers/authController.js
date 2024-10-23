@@ -380,8 +380,6 @@ exports.sendPhoneOTP = async (req, res) => {
  *   post:
  *     summary: Verify phone OTP
  *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
