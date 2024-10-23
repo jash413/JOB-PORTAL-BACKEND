@@ -22,16 +22,16 @@ router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.resetPassword);
 
 // Send email verification
-router.post("/send-email-verification", authController.sendEmailVerification);
+router.post("/send-email-verification", authMiddleware() ,authController.sendEmailVerification);
 
 // Verify email
-router.get("/verify-email", authController.verifyEmail);
+router.get("/verify-email", authMiddleware() ,authController.verifyEmail);
 
 // Send phone otp
-router.post("/send-phone-otp", authController.sendPhoneOTP);
+router.post("/send-phone-otp", authMiddleware() ,authController.sendPhoneOTP);
 
 // Verify phone
-router.post("/verify-phone", authController.verifyPhoneOTP);
+router.post("/verify-phone", authMiddleware() ,authController.verifyPhoneOTP);
 
 // Get profile info (Protected route)
 router.get("/profile", authMiddleware(), authController.getProfile);

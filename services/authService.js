@@ -49,10 +49,6 @@ const authService = {
       email_ver_status: 0,
     });
 
-    // Send verification email and phone OTP
-    await this.sendVerificationEmail(newUser);
-    await this.sendPhoneVerificationOTP(newUser);
-
     return newUser;
   },
 
@@ -69,11 +65,6 @@ const authService = {
     const validPassword = await bcrypt.compare(login_pass, user.login_pass);
     if (!validPassword)
       throw new AuthenticationError("Invalid email or password");
-
-    if (!user.email_ver_status)
-      throw new AuthenticationError("Email not verified");
-    if (!user.phone_verified)
-      throw new AuthenticationError("Phone number not verified");
 
     const token = this.generateToken(user);
 
