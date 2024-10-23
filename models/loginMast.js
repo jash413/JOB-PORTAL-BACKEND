@@ -40,6 +40,10 @@ const Login = sequelize.define(
       allowNull: true,
       defaultValue: DataTypes.NOW,
     },
+    user_approval_status: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     email_ver_status: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
