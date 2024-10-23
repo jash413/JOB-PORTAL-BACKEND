@@ -296,8 +296,6 @@ exports.resetPassword = async (req, res) => {
  *   post:
  *     summary: Verify user's email
  *     tags: [Authentication]
- *     security:
- *      - bearerAuth: []
  *     responses:
  *       200:
  *         description: Email verification link sent successfully
@@ -355,8 +353,6 @@ exports.verifyEmail = async (req, res) => {
  *   post:
  *     summary: Send OTP for phone verification
  *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: OTP sent successfully
