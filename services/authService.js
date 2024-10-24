@@ -76,9 +76,9 @@ const authService = {
    * @param {string} token - Google ID token
    * @returns {Object} Token and user object
    */
-  async googleLogin(token) {
+  async googleLogin(token, login_type) {
     const payload = await this.verifyGoogleToken(token);
-    const user = await this.findOrCreateGoogleUser(payload);
+    const user = await this.findOrCreateGoogleUser(payload, login_type);
     const authToken = this.generateToken(user);
     return { token: authToken, user };
   },
@@ -239,21 +239,21 @@ const authService = {
    * @param {Object} payload - Google user data
    * @returns {Object} User object
    */
-  async findOrCreateGoogleUser(payload) {
+  async findOrCreateGoogleUser(payload, login_type) {
     const { email, name, picture } = payload;
     let user = await Login.findOne({ where: { login_email: email } });
     if (!user) {
       user = await Login.create({
         login_name: name,
         login_email: email,
-        login_type: "GOOGLE",
-        login_pass: await this.hashPassword(
+        login_type: login_type,
+        login_pass: this.hashPassword(
           crypto.randomBytes(20).toString("hex")
         ),
         reg_date: new Date(),
         profile_picture: picture,
-        email_ver_status: true, // Google accounts are considered verified
-        phone_verified: false, // Phone verification still required
+        email_ver_status: 1, // Google accounts are considered verified
+        phone_verified: 0, // Phone verification still required
       });
     }
     return user;

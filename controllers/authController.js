@@ -124,10 +124,15 @@ exports.login = async (req, res) => {
  *             type: object
  *             required:
  *               - token
+ *               - login_type
  *             properties:
  *               token:
  *                 type: string
  *                 description: Google ID token obtained from the client-side Google Sign-In
+ *               login_type:
+ *                 type: string
+ *                 example: "AMN"
+ *                 enum: ["AMN", "CND", "EMP"]
  *     responses:
  *       200:
  *         description: User authenticated successfully
@@ -147,8 +152,8 @@ exports.login = async (req, res) => {
  */
 exports.googleAuth = async (req, res) => {
   try {
-    const { token } = req.body;
-    const { token: jwtToken, user } = await authService.googleLogin(token);
+    const { token, login_type } = req.body;
+    const { token: jwtToken, user } = await authService.googleLogin(token, login_type);
     res.json({ token: jwtToken, user });
   } catch (error) {
     if (error.name === "AuthenticationError") {
