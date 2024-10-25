@@ -34,17 +34,27 @@ const { aggregateData } = require("../utils/aggregator");
  *                 type: integer
  *                 description: Number of records per page
  *                 example: 10
+ *               cmp_name:
+ *                 type: string
+ *                 description: Company name for exact match
+ *                 example: webwise solution
+ *               emp_loca:
+ *                 type: string
+ *                 description: Location of the employer for exact match
+ *                 example: Bangalore
  *               sortBy:
  *                 type: string
  *                 description: Field to sort by
  *                 example: cmp_name
+ *                 enum: [cmp_name, emp_loca]
  *               sortOrder:
  *                 type: string
  *                 description: Sort order (ASC or DESC)
  *                 example: ASC
+ *                 enum: [ASC, DESC]
  *               search:
  *                 type: string
- *                 description: Search term for company name or location
+ *                 description: Search term for company name or location(city)
  *                 example: webwise solution
  *     responses:
  *       200:
@@ -54,12 +64,14 @@ const { aggregateData } = require("../utils/aggregator");
  *             schema:
  *               type: object
  *               properties:
- *                 data:
+ *                 records:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       emp_id:
+ *                       login_id:
+ *                         type: integer
+ *                       cmp_code:
  *                         type: integer
  *                       cmp_name:
  *                         type: string
@@ -73,21 +85,36 @@ const { aggregateData } = require("../utils/aggregator");
  *                         type: string
  *                       emp_addr:
  *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
  *                 pagination:
  *                   type: object
  *                   properties:
  *                     totalItems:
  *                       type: integer
  *                       description: Total number of items
- *                     currentPage:
- *                       type: integer
- *                       description: Current page number
  *                     totalPages:
  *                       type: integer
  *                       description: Total number of pages
- *                     pageSize:
+ *                     currentPage:
  *                       type: integer
- *                       description: Number of items per page
+ *                       description: Current page number
+ *                     nextPage:
+ *                       type: integer
+ *                       description: Next page number
+ *                     prevPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       description: Has next page
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       description: Has previous page
  *       500:
  *         description: Error fetching employers
  *         content:
@@ -583,7 +610,7 @@ exports.getApprovedCandidates = async (req, res) => {
       {
         model: Candidate,
         attributes: ["can_name", "can_email"],
-        as: "Candidate"
+        as: "Candidate",
       },
     ]; // Include candidate model
     const searchFields = ["Candidate.can_name", "Candidate.can_email"]; // Allow searching by candidate name and email
@@ -600,7 +627,40 @@ exports.getApprovedCandidates = async (req, res) => {
 
     res.status(200).json(aggregatedData);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Error fetching candidates", error });
+  }
+};
+
+exports.getEmployersAccessibleToCandidate = async (req, res) => {
+  try {
+    const includeModels = []; // Include candidate model
+
+    const standardFields = ["cmp_name", "emp_loca"]; // Filter by employer ID
+
+    const rangeFields = []; // Filter by employer ID
+
+    const searchFields = ["cmp_name", "emp_loca"]; // Allow searching by candidate name and email
+
+    const allowedSortFields = ["createdAt"]; // Sort by the date the access was granted
+
+    const aggregatedData = await aggregateData({
+      baseModel: Employer,
+      includeModels,
+      body: {
+        emp_code: ProfileAccess.findAll({
+          where: { candidateId: req.body.candidateId },
+          attributes: ["employerId"],
+        }),
+      },
+      standardFields,
+      rangeFields,
+      searchFields,
+      allowedSortFields,
+    });
+
+    res.status(200).json(aggregatedData);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching employers", error });
   }
 };

@@ -29,5 +29,10 @@ router.delete(
   authMiddleware(["EMP"]),
   jobPostController.deleteJobPost
 );
+router.post(
+  "/get-job-posts-accessible-to-candidate",
+  authMiddleware(["CAN"]),
+  jobPostController.getJobPosts
+);
 
 module.exports = router;

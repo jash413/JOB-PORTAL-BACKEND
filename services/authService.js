@@ -365,10 +365,14 @@ const authService = {
     try {
       const otp = this.generateOTP();
       const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
-
+      console.log(user)
       user.phone_otp = otp;
       user.phone_otp_expiry = otpExpiry;
-      await user.save();
+
+      await Login.update(
+        { phone_otp: otp, phone_otp_expiry: otpExpiry },
+        { where: { login_id: user.login_id } }
+      );
 
       await this.sendSMS(
         user.login_mobile,
