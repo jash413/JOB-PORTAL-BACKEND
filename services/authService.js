@@ -7,7 +7,10 @@ const nodemailer = require("nodemailer");
 const axios = require("axios");
 
 // Initialize Google OAuth client
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET
+);
 
 // Custom error class for authentication-related errors
 class AuthenticationError extends Error {
@@ -61,7 +64,6 @@ const authService = {
   async login(login_email, login_pass) {
     const user = await Login.findOne({ where: { login_email } });
     if (!user) throw new AuthenticationError("Invalid email or password");
-
     const validPassword = await bcrypt.compare(login_pass, user.login_pass);
     if (!validPassword)
       throw new AuthenticationError("Invalid email or password");
@@ -361,23 +363,23 @@ const authService = {
    */
   async sendPhoneVerificationOTP(user) {
     try {
-    const otp = this.generateOTP();
-    const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
+      const otp = this.generateOTP();
+      const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
 
-    user.phone_otp = otp;
-    user.phone_otp_expiry = otpExpiry;
-    await user.save();
+      user.phone_otp = otp;
+      user.phone_otp_expiry = otpExpiry;
+      await user.save();
 
-    await this.sendSMS(
-      user.login_mobile,
-      `OTP for SAISUN iFAS ERP App is : ${otp}`
-    );
+      await this.sendSMS(
+        user.login_mobile,
+        `OTP for SAISUN iFAS ERP App is : ${otp}`
+      );
 
-    return otp;
-  } catch (error) {
-    console.error("Error sending SMS:", error);
-    throw new AuthenticationError("Failed to send SMS");
-  }
+      return otp;
+    } catch (error) {
+      console.error("Error sending SMS:", error);
+      throw new AuthenticationError("Failed to send SMS");
+    }
   },
 
   /**
