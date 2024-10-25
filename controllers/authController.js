@@ -153,7 +153,10 @@ exports.login = async (req, res) => {
 exports.googleAuth = async (req, res) => {
   try {
     const { token, login_type } = req.body;
-    const { token: jwtToken, user } = await authService.googleLogin(token, login_type);
+    const { token: jwtToken, user } = await authService.googleLogin(
+      token,
+      login_type
+    );
     res.json({ token: jwtToken, user });
   } catch (error) {
     if (error.name === "AuthenticationError") {
@@ -313,7 +316,11 @@ exports.resetPassword = async (req, res) => {
  */
 exports.sendEmailVerification = async (req, res) => {
   try {
-    await authService.sendVerificationEmail(req.user);
+    const token = await authService.sendVerificationEmail(req.user);
+    if (!token)
+      return res
+        .status(400)
+        .json({ error: "Error sending email verification link" });
     res.json({ message: "Email verification link sent successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to send email verification link" });
@@ -374,7 +381,8 @@ exports.verifyEmail = async (req, res) => {
  */
 exports.sendPhoneOTP = async (req, res) => {
   try {
-    await authService.sendPhoneVerificationOTP(req.user);
+    const otp = await authService.sendPhoneVerificationOTP(req.user);
+    if (!otp) return res.status(400).json({ error: "Error sending OTP" });
     res.json({ message: "OTP sent successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to send OTP" });

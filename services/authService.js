@@ -175,7 +175,12 @@ const authService = {
    */
   generateToken(user) {
     return jwt.sign(
-      { login_id: user.login_id, login_type: user.login_type },
+      {
+        login_id: user.login_id,
+        login_type: user.login_type,
+        login_email: user.login_email,
+        login_mobile: user.login_mobile,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -247,9 +252,7 @@ const authService = {
         login_name: name,
         login_email: email,
         login_type: login_type,
-        login_pass: this.hashPassword(
-          crypto.randomBytes(20).toString("hex")
-        ),
+        login_pass: this.hashPassword(crypto.randomBytes(20).toString("hex")),
         reg_date: new Date(),
         profile_picture: picture,
         email_ver_status: 1, // Google accounts are considered verified
@@ -281,39 +284,42 @@ const authService = {
    * @param {Object} user - User object
    */
   async sendVerificationEmail(user) {
-    const token = jwt.sign(
-      { login_id: user.login_id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+    try {
+      const token = jwt.sign(
+        { login_id: user.login_id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+      const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+      // Send verification email
 
-    // Send verification email
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.login_email,
+        subject: "Email Verification",
+        html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email</p>`,
+      };
 
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: user.login_email,
-      subject: "Email Verification",
-      html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email</p>`,
-    };
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+          throw new AuthenticationError("Failed to send email");
+        }
+      });
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-        throw new AuthenticationError("Failed to send email");
-      }
-    });
-
-    // Implement email sending logic here
-    // You can use nodemailer or any other email service
+      return token;
+    } catch (error) {
+      console.log("Error sending email:", error);
+      throw new AuthenticationError("Failed to send email");
+    }
   },
 
   /**
@@ -324,7 +330,7 @@ const authService = {
   async sendPasswordResetEmail(email, token) {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
-    // Send Professsional Email 
+    // Send Professsional Email
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -354,6 +360,7 @@ const authService = {
    * @param {Object} user - User object
    */
   async sendPhoneVerificationOTP(user) {
+    try {
     const otp = this.generateOTP();
     const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
 
@@ -365,6 +372,12 @@ const authService = {
       user.login_mobile,
       `OTP for SAISUN iFAS ERP App is : ${otp}`
     );
+
+    return otp;
+  } catch (error) {
+    console.error("Error sending SMS:", error);
+    throw new AuthenticationError("Failed to send SMS");
+  }
   },
 
   /**
