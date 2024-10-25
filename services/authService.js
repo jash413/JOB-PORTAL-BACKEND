@@ -400,7 +400,7 @@ const authService = {
     if (Date.now() > user.phone_otp_expiry)
       throw new AuthenticationError("OTP has expired");
 
-    user.phone_verified = true;
+    user.phone_ver_status = 1;
     user.phone_otp = null;
     user.phone_otp_expiry = null;
     await user.save();
