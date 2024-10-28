@@ -146,10 +146,7 @@ const authService = {
 
     if (!user) throw new AuthenticationError("Invalid or expired reset token");
 
-    if (!this.validatePassword(newPassword))
-      throw new AuthenticationError(
-        "Password must be between 8 and 20 characters long and contain at least one lowercase letter, one uppercase letter, and one number"
-      );
+    this.validatePassword(newPassword)
 
     user.login_pass = this.hashPassword(newPassword);
     user.reset_token = null;
