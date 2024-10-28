@@ -5,6 +5,8 @@ const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
+const sequelize = require("../config/db");
+const { Op } = require('sequelize');
 
 // Initialize Google OAuth client
 const client = new OAuth2Client(
@@ -144,9 +146,12 @@ const authService = {
 
     if (!user) throw new AuthenticationError("Invalid or expired reset token");
 
-    this.validatePassword(newPassword);
+    if (!this.validatePassword(newPassword))
+      throw new AuthenticationError(
+        "Password must be between 8 and 20 characters long and contain at least one lowercase letter, one uppercase letter, and one number"
+      );
 
-    user.login_pass = await this.hashPassword(newPassword);
+    user.login_pass = this.hashPassword(newPassword);
     user.reset_token = null;
     user.reset_token_expiry = null;
     await user.save();
