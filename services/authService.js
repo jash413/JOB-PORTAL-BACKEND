@@ -72,6 +72,13 @@ const authService = {
 
     const token = this.generateToken(user);
 
+    // Save a otp in the user table
+    const otp = this.generateOTP();
+    const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
+    user.phone_otp = otp;
+    user.phone_otp_expiry = otpExpiry;
+    await user.save();
+    
     return { token, user };
   },
 
