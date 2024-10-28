@@ -5,7 +5,6 @@ const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
-const sequelize = require("../config/db");
 const { Op } = require('sequelize');
 
 // Initialize Google OAuth client
@@ -78,7 +77,7 @@ const authService = {
     user.phone_otp = otp;
     user.phone_otp_expiry = otpExpiry;
     await user.save();
-    
+
     return { token, user };
   },
 
@@ -155,7 +154,7 @@ const authService = {
 
     this.validatePassword(newPassword)
 
-    user.login_pass = this.hashPassword(newPassword);
+    user.login_pass = await this.hashPassword(newPassword);
     user.reset_token = null;
     user.reset_token_expiry = null;
     await user.save();
