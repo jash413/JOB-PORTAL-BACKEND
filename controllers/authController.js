@@ -469,3 +469,49 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: "An unexpected error occurred" });
   }
 };
+
+/**
+ * @swagger
+ * /api/v1/auth/edit-profile:
+ *   put:
+ *     summary: Update the user's profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               login_name:
+ *                 type: string
+ *                 example: "John Doe"
+ *               login_email:
+ *                 type: string
+ *                 example: "john@mail.com"
+ *               login_mobile:
+ *                 type: string
+ *                 example: "1234567890"
+ *                 description: Mobile number must be 10 digits long
+ *     responses:
+ *       200:
+ *         description: The user's profile information updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+exports.editProfile = async (req, res) => {
+  try {
+    const user = await authService.editProfile(req.user.login_id, req.body);
+    res.json(user);
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};

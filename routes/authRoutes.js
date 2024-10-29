@@ -36,4 +36,7 @@ router.post("/verify-phone", authMiddleware() ,authController.verifyPhoneOTP);
 // Get profile info (Protected route)
 router.get("/profile", authMiddleware(), authController.getProfile);
 
+// Update profile info (Protected route)
+router.put("/edit-profile", authMiddleware(), authController.editProfile);
+
 module.exports = router;

@@ -5,7 +5,7 @@ const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 
 // Initialize Google OAuth client
 const client = new OAuth2Client(
@@ -152,7 +152,7 @@ const authService = {
 
     if (!user) throw new AuthenticationError("Invalid or expired reset token");
 
-    this.validatePassword(newPassword)
+    this.validatePassword(newPassword);
 
     user.login_pass = await this.hashPassword(newPassword);
     user.reset_token = null;
@@ -505,6 +505,24 @@ const authService = {
       console.error("Error sending SMS:", error);
       throw new AuthenticationError("Failed to send SMS");
     }
+  },
+
+  /**
+   * Edit user profile
+   * @param {number} login_id - User ID
+   * @param {Object} body - Updated user data
+   * @returns {Object} Updated user object
+   * @throws {AuthenticationError} If user not found
+   */
+  async editProfile(login_id, body) {
+    const user = await Login.findByPk(login_id);
+    if (!user) throw new AuthenticationError("User not found");
+    const { login_name, login_email, login_mobile } = body;
+    user.login_name = login_name;
+    user.login_email = login_email;
+    user.login_mobile = login_mobile;
+    await user.save();
+    return user;
   },
 };
 
