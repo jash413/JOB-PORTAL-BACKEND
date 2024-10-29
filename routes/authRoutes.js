@@ -15,23 +15,27 @@ router.post("/google", authController.googleAuth);
 // Change password (Protected route)
 router.put("/change-password", authMiddleware(), authController.changePassword);
 
-// Forgot password  
+// Forgot password
 router.post("/forgot-password", authController.forgotPassword);
 
 // Reset password
 router.post("/reset-password", authController.resetPassword);
 
 // Send email verification
-router.post("/send-email-verification", authMiddleware() ,authController.sendEmailVerification);
+router.post(
+  "/send-email-verification",
+  authMiddleware(),
+  authController.sendEmailVerification
+);
 
 // Verify email
-router.get("/verify-email", authMiddleware() ,authController.verifyEmail);
+router.get("/verify-email", authController.verifyEmail);
 
 // Send phone otp
-router.post("/send-phone-otp", authMiddleware() ,authController.sendPhoneOTP);
+router.post("/send-phone-otp", authMiddleware(), authController.sendPhoneOTP);
 
 // Verify phone
-router.post("/verify-phone", authMiddleware() ,authController.verifyPhoneOTP);
+router.post("/verify-phone", authMiddleware(), authController.verifyPhoneOTP);
 
 // Get profile info (Protected route)
 router.get("/profile", authMiddleware(), authController.getProfile);

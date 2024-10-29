@@ -518,6 +518,22 @@ const authService = {
     const user = await Login.findByPk(login_id);
     if (!user) throw new AuthenticationError("User not found");
     const { login_name, login_email, login_mobile } = body;
+
+    if (login_email) {
+      const emailExists = await Login.findOne({
+        where: { login_email, login_id: { [Op.ne]: login_id } },
+      });
+      if (emailExists) throw new AuthenticationError("Email already exists");
+    }
+
+    if (login_mobile) {
+      const mobileExists = await Login.findOne({
+        where: { login_mobile, login_id: { [Op.ne]: login_id } },
+      });
+      if (mobileExists)
+        throw new AuthenticationError("Mobile number already exists");
+    }
+
     user.login_name = login_name;
     user.login_email = login_email;
     user.login_mobile = login_mobile;

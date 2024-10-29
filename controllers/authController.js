@@ -333,8 +333,6 @@ exports.sendEmailVerification = async (req, res) => {
  *   get:
  *     summary: Verify user's email
  *     tags: [Authentication]
- *     security:
- *      - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: token
