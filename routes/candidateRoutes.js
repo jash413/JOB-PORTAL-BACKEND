@@ -36,7 +36,7 @@ router.get(
   authMiddleware(["AMN", "CND"]),
   candidateController.downloadProfileImage
 )
-router.post(
+router.get(
   "/:id/resume",
   authMiddleware(["AMN", "CND"]),
   candidateController.downloadResume
