@@ -7,7 +7,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
 // Get all job categories
 router.post(
   "/get-job-categories",
-  authMiddleware(["AMN"]),
+  authMiddleware(["AMN","CAN"]),
   jobCateController.getAllJobCategories
 );
 
