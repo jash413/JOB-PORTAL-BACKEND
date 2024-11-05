@@ -118,10 +118,21 @@ const createFileUploadConfig = (config = {}) => {
     });
   };
 
+  const deleteFile = async (filePath = []) => {
+    try {
+      for (const file of filePath) {
+        await fs.unlink(file);
+      }
+    } catch (error) {
+      console.error(`Error deleting file ${filePath}:`, error);
+    }
+  };
+
   return {
     uploadFiles,
     cleanupOnError,
     uploadDir,
+    deleteFile,
   };
 };
 
