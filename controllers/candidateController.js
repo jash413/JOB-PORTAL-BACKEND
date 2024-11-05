@@ -173,7 +173,9 @@ exports.getAllCandidates = async (req, res) => {
 exports.getCandidateById = async (req, res) => {
   try {
     const { id } = req.params;
-    const candidate = await Candidate.findByPk(id);
+    const candidate = await Candidate.findOne({
+      where: { login_id: id },
+    });
 
     if (!candidate) {
       return res.status(404).json({ error: "Candidate not found" });
