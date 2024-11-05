@@ -8,27 +8,27 @@ const router = express.Router();
 // Define the routes
 router.post(
   "/get-candidates",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   candidateController.getAllCandidates
 ); // Get all candidates
 router.get(
   "/:id",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   candidateController.getCandidateById
 ); // Get a specific candidate
 router.post(
   "/",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   candidateController.createCandidate
 ); // Create a new candidate
 router.put(
   "/:id",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   candidateController.updateCandidate
 ); // Update an existing candidate
 router.delete(
   "/:id",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   candidateController.deleteCandidate
 ); // Delete a candidate
 

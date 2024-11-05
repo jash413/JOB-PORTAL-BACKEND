@@ -31,7 +31,7 @@ router.delete(
 );
 router.post(
   "/get-job-posts-accessible-to-candidate",
-  authMiddleware(["CAN"]),
+  authMiddleware(["CND"]),
   jobPostController.getJobPosts
 );
 

@@ -6,35 +6,35 @@ const authMiddleware = require("../middlewares/authMiddleware");
 // Get all education records for a candidate
 router.post(
   "/get-edu-details",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   educationController.getEducationByCandidate
 );
 
 // Get a single education record by ID
 router.get(
   "/:edu_id",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   educationController.getEducationById
 );
 
 // Create a new education record
 router.post(
   "/",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   educationController.createEducation
 );
 
 // Update an education record by ID
 router.put(
   "/:edu_id",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   educationController.updateEducation
 );
 
 // Delete an education record by ID
 router.delete(
   "/:edu_id",
-  authMiddleware(["AMN", "CAN"]),
+  authMiddleware(["AMN", "CND"]),
   educationController.deleteEducation
 );
 
