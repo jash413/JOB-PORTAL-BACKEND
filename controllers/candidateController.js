@@ -2,9 +2,7 @@
 
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
-const JobPost = require("../models/jobPost");
-const Employer = require("../models/employer");
-const ProfileAccess = require("../models/profileAccess");
+const Login = require("../models/loginMast");
 const createFileUploadConfig = require("../utils/fileUpload");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -344,39 +342,81 @@ exports.createCandidate = async (req, res) => {
 exports.updateCandidate = async (req, res) => {
   const { id } = req.params;
 
-  multipleUpload(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ error: err.message });
+  try {
+    // Upload configuration
+    const { uploadFiles } = await createFileUploadConfig({
+      uploadDir: "uploads/candidates",
+      fileTypes: { image: /jpeg|jpg|png/, document: /pdf/ },
+      maxFileSize: 5 * 1024 * 1024, // 5MB max file size
+    });
+
+    // Upload files and get paths
+    const uploadedFiles = await uploadFiles(req, res, [
+      "profileImage",
+      "resume",
+    ]);
+
+    const { can_name, can_email, can_mobn, can_job_cate, reg_date } = req.body;
+    const profileImageUrl = uploadedFiles.profileImage || null;
+    const resumeUrl = uploadedFiles.resume || null;
+
+    // Find candidate by ID
+    const candidate = await Candidate.findByPk(id);
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
     }
 
-    try {
-      const { can_name, can_email, can_mobn, can_job_cate, reg_date } =
-        req.body;
-      const profileImageUrl = req.files?.profileImage?.[0]?.path || null;
-      const resumeUrl = req.files?.resume?.[0]?.path || null;
-
-      const candidate = await Candidate.findByPk(id);
-
-      if (!candidate) {
-        return res.status(404).json({ error: "Candidate not found" });
-      }
-
-      // Update candidate details
-      candidate.can_name = can_name || candidate.can_name;
-      candidate.can_email = can_email || candidate.can_email;
-      candidate.can_mobn = can_mobn || candidate.can_mobn;
-      candidate.can_job_cate = can_job_cate || candidate.can_job_cate;
-      candidate.reg_date = reg_date || candidate.reg_date;
-      if (profileImageUrl) candidate.can_profile_img = profileImageUrl;
-      if (resumeUrl) candidate.can_resume = resumeUrl;
-
-      await candidate.save();
-
-      res.status(200).json({ message: "Candidate updated successfully" });
-    } catch (error) {
-      res.status(400).json({ error: "Error updating candidate" });
+    // Find associated login record
+    const login = await Login.findByPk(candidate.login_id);
+    if (!login) {
+      return res.status(404).json({ error: "Associated login not found" });
     }
-  });
+
+    // Check for duplicate email
+    const existingEmail = await Candidate.findOne({ where: { can_email } });
+    if (existingEmail) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+
+    // Check for duplicate mobile number
+    const existingMobile = await Candidate.findOne({ where: { can_mobn } });
+    if (existingMobile) {
+      return res.status(400).json({ error: "Mobile number already in use" });
+    }
+
+    // Update verification status if email or mobile number is modified
+    if (can_email && can_email !== candidate.can_email) {
+      login.email_ver_status = 0;
+    }
+    if (can_mobn && can_mobn !== candidate.can_mobn) {
+      login.phone_ver_status = 0;
+    }
+
+    // Update login information
+    Object.assign(login, {
+      login_name: can_name,
+      login_email: can_email,
+      login_mobile: can_mobn,
+    });
+    await login.save();
+
+    // Update candidate information
+    Object.assign(candidate, {
+      can_name: can_name || candidate.can_name,
+      can_email: can_email || candidate.can_email,
+      can_mobn: can_mobn || candidate.can_mobn,
+      can_job_cate: can_job_cate || candidate.can_job_cate,
+      reg_date: reg_date || candidate.reg_date,
+      can_profile_img: profileImageUrl || candidate.can_profile_img,
+      can_resume: resumeUrl || candidate.can_resume,
+    });
+    await candidate.save();
+
+    res.status(200).json({ message: "Candidate updated successfully" });
+  } catch (error) {
+    console.error(error); // Log error for debugging
+    res.status(500).json({ error: "Error updating candidate" });
+  }
 };
 
 /**
