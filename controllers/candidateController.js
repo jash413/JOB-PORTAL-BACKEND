@@ -459,3 +459,97 @@ exports.deleteCandidate = async (req, res) => {
     res.status(500).json({ error: "Error deleting candidate" });
   }
 };
+
+/**
+ * @swagger
+ * /api/v1/candidates/{id}/resume:
+ *   get:
+ *     summary: Download a candidate's resume by ID
+ *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The candidate ID
+ *     responses:
+ *       200:
+ *         description: Candidate resume file
+ *       404:
+ *         description: Candidate not found
+ *       500:
+ *         description: Error downloading resume
+ */
+exports.downloadResume = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const candidate = await Candidate.findByPk(id);
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
+    if (!candidate.can_resume) {
+      return res.status(404).json({ error: "Resume not found" });
+    }
+
+    // Download resume file
+    const { downloadFile } = createFileUploadConfig({
+      uploadDir: "uploads/candidates",
+    });
+    await downloadFile(candidate.can_resume, res);
+  } catch (error) {
+    console.error("Error downloading resume:", error);
+    res.status(500).json({ error: "Error downloading resume" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/candidates/{id}/profile-image:
+ *   get:
+ *     summary: Download a candidate's profile image by ID
+ *     tags: [Candidates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The candidate ID
+ *     responses:
+ *       200:
+ *         description: Candidate profile image
+ *       404:
+ *         description: Candidate not found
+ *       500:
+ *         description: Error downloading profile image
+ */
+exports.downloadProfileImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const candidate = await Candidate.findByPk(id);
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
+    if (!candidate.can_profile_img) {
+      return res.status(404).json({ error: "Profile image not found" });
+    }
+
+    // Download profile image
+    const { downloadFile } = createFileUploadConfig({
+      uploadDir: "uploads/candidates",
+    });
+    await downloadFile(candidate.can_profile_img, res);
+  } catch (error) {
+    console.error("Error downloading profile image:", error);
+    res.status(500).json({ error: "Error downloading profile image" });
+  }
+}

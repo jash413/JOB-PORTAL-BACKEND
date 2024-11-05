@@ -128,11 +128,22 @@ const createFileUploadConfig = (config = {}) => {
     }
   };
 
+  const downloadFile = async (filePath, res) => {
+    try {
+      const file = await fs.readFile(filePath);
+      res.send(file);
+    }
+    catch (error) {
+      res.status(404).send('File not found');
+    }
+  }
+
   return {
     uploadFiles,
     cleanupOnError,
     uploadDir,
     deleteFile,
+    downloadFile,
   };
 };
 

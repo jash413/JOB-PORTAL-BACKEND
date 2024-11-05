@@ -31,5 +31,15 @@ router.delete(
   authMiddleware(["AMN", "CND"]),
   candidateController.deleteCandidate
 ); // Delete a candidate
+router.get(
+  "/:id/profile-image",
+  authMiddleware(["AMN", "CND"]),
+  candidateController.downloadProfileImage
+)
+router.post(
+  "/:id/resume",
+  authMiddleware(["AMN", "CND"]),
+  candidateController.downloadResume
+)
 
 module.exports = router;
