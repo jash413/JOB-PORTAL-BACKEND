@@ -134,6 +134,7 @@ const createFileUploadConfig = (config = {}) => {
       res.send(file);
     }
     catch (error) {
+      console.error(`Error reading file ${filePath}:`, error);
       res.status(404).send('File not found');
     }
   }
