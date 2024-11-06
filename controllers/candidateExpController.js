@@ -1,7 +1,6 @@
 const CandidateExpDetails = require("../models/candidateExpDetails");
 const Candidate = require("../models/candidate");
 const { aggregateData } = require("../utils/aggregator");
-const Candidate = require("../models/candidate");
 
 /**
  * @swagger
