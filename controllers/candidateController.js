@@ -300,13 +300,6 @@ exports.createCandidate = async (req, res) => {
  *     tags: [Candidates]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The candidate ID
  *     requestBody:
  *       required: true
  *       content:
