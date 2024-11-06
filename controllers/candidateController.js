@@ -294,7 +294,7 @@ exports.createCandidate = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/candidates/{id}:
+ * /api/v1/candidates:
  *   put:
  *     summary: Update a candidate with profile image and resume upload
  *     tags: [Candidates]
@@ -342,8 +342,6 @@ exports.createCandidate = async (req, res) => {
  *         description: Error updating candidate
  */
 exports.updateCandidate = async (req, res) => {
-  const { id } = req.params;
-
   try {
     // Configure file upload with dynamic parameters
     const fileUploadConfig = createFileUploadConfig({
@@ -363,7 +361,9 @@ exports.updateCandidate = async (req, res) => {
     const resumeUrl = uploadedFiles.resume || null;
 
     // Retrieve candidate by ID
-    const candidate = await Candidate.findByPk(id);
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+    });
     if (!candidate) {
       return res.status(404).json({ error: "Candidate not found" });
     }
@@ -554,4 +554,4 @@ exports.downloadProfileImage = async (req, res) => {
     console.error("Error downloading profile image:", error);
     res.status(500).json({ error: "Error downloading profile image" });
   }
-}
+};

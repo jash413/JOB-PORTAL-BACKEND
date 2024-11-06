@@ -22,7 +22,7 @@ router.post(
   candidateController.createCandidate
 ); // Create a new candidate
 router.put(
-  "/:id",
+  "/",
   authMiddleware(["AMN", "CND"]),
   candidateController.updateCandidate
 ); // Update an existing candidate
