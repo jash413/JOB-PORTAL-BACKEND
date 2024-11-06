@@ -376,10 +376,10 @@ exports.updateCandidate = async (req, res) => {
     // Check for duplicate email and mobile, ignoring the current candidate's ID
     const emailInUse = await Candidate.findOne({ where: { can_email } });
     const mobileInUse = await Candidate.findOne({ where: { can_mobn } });
-    if (emailInUse && emailInUse.can_code !== parseInt(id, 10)) {
+    if (emailInUse && emailInUse.can_code !== candidate.can_code) {
       return res.status(400).json({ error: "Email already in use" });
     }
-    if (mobileInUse && mobileInUse.can_code !== parseInt(id, 10)) {
+    if (mobileInUse && mobileInUse.can_code !== candidate.can_code) {
       return res.status(400).json({ error: "Mobile number already in use" });
     }
 
