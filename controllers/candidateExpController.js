@@ -1,4 +1,5 @@
 const CandidateExpDetails = require("../models/candidateExpDetails");
+const Candidate = require("../models/candidate");
 const { aggregateData } = require("../utils/aggregator");
 const Candidate = require("../models/candidate");
 
@@ -160,8 +161,6 @@ exports.getExpDetailById = async (req, res) => {
  *               job_endt:
  *                 type: string
  *                 format: date
- *               can_code:
- *                 type: integer
  *     responses:
  *       201:
  *         description: Experience detail created successfully
@@ -175,15 +174,16 @@ exports.getExpDetailById = async (req, res) => {
 // Create a new experience detail
 exports.createExpDetail = async (req, res) => {
   try {
-    const {
-      emp_name,
-      exp_type,
-      exp_desg,
-      cur_ctc,
-      job_stdt,
-      job_endt,
-      can_code,
-    } = req.body;
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
+    const { emp_name, exp_type, exp_desg, cur_ctc, job_stdt, job_endt } =
+      req.body;
 
     const newExpDetail = await CandidateExpDetails.create({
       emp_name,
@@ -192,7 +192,7 @@ exports.createExpDetail = async (req, res) => {
       cur_ctc,
       job_stdt,
       job_endt,
-      can_code,
+      can_code: candidate.can_code,
     });
 
     res.status(201).json(newExpDetail);
