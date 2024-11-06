@@ -169,10 +169,6 @@ exports.getEducationById = async (req, res) => {
  *                 type: number
  *                 description: CGPA (if applicable)
  *                 example: 8.5
- *               can_code:
- *                 type: integer
- *                 description: Candidate's code
- *                 example: 1234
  *     responses:
  *       201:
  *         description: Education record created successfully
@@ -185,6 +181,15 @@ exports.getEducationById = async (req, res) => {
  */
 exports.createEducation = async (req, res) => {
   try {
+
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
     const {
       can_edu,
       can_scho,
@@ -192,7 +197,6 @@ exports.createEducation = async (req, res) => {
       can_perc,
       can_stre,
       can_cgpa,
-      can_code,
     } = req.body;
 
     const newEducation = await CandidateEducation.create({
@@ -202,7 +206,7 @@ exports.createEducation = async (req, res) => {
       can_perc,
       can_stre,
       can_cgpa,
-      can_code,
+      can_code: candidate.can_code,
     });
 
     res.status(201).json(newEducation);
