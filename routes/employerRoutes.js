@@ -27,7 +27,7 @@ router.post(
 
 // Update an existing employer
 router.put(
-  "/:id",
+  "/",
   authMiddleware(["AMN", "EMP"]),
   employerController.updateEmployer
 );
