@@ -137,7 +137,7 @@ exports.getAllCandidates = async (req, res) => {
  *         schema:
  *           type: integer
  *         required: true
- *         description: The candidate ID
+ *         description: The login ID
  *     responses:
  *       200:
  *         description: A candidate object

@@ -175,7 +175,7 @@ exports.getAllEmployers = async (req, res) => {
  *         schema:
  *           type: integer
  *         required: true
- *         description: The employer ID
+ *         description: The login ID
  *     responses:
  *       200:
  *         description: A single employer
@@ -206,7 +206,9 @@ exports.getAllEmployers = async (req, res) => {
 exports.getEmployerById = async (req, res) => {
   try {
     const { id } = req.params;
-    const employer = await Employer.findByPk(id);
+    const employer = await Employer.findOne({
+      where: { login_id: id },
+    });
     if (employer) {
       res.status(200).json(employer);
     } else {
