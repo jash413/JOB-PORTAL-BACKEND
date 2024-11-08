@@ -275,6 +275,18 @@ exports.createEmployer = async (req, res) => {
   try {
     const { cmp_name, cmp_email, cmp_mobn, cmp_webs, emp_loca, emp_addr } =
       req.body;
+
+    // Check for duplicate email and mobile
+    const duplicateEmail = await Employer.findOne({ where: { cmp_email } });
+    if (duplicateEmail) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+
+    const duplicateMobile = await Employer.findOne({ where: { cmp_mobn } });
+    if (duplicateMobile) {
+      return res.status(400).json({ error: "Mobile number already in use" });
+    }
+
     const newEmployer = await Employer.create({
       login_id: req.user.login_id,
       cmp_name,
