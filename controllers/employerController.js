@@ -2,6 +2,7 @@ const Employer = require("../models/employer");
 const Candidate = require("../models/candidate");
 const AccessRequest = require("../models/accessRequest");
 const ProfileAccess = require("../models/profileAccess");
+const { Op } = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -289,19 +290,12 @@ exports.createEmployer = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/employers/{id}:
+ * /api/v1/employers:
  *   put:
  *     summary: Update an existing employer by ID
  *     tags: [Employers]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: integer
- *         required: true
- *         description: The employer ID
  *     requestBody:
  *       required: true
  *       content:
@@ -350,23 +344,43 @@ exports.createEmployer = async (req, res) => {
  */
 exports.updateEmployer = async (req, res) => {
   try {
-    const { id } = req.params;
     const { cmp_name, cmp_email, cmp_mobn, cmp_webs, emp_loca, emp_addr } =
       req.body;
-    const employer = await Employer.findByPk(id);
+    const employer = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+    });
 
-    if (employer) {
-      employer.cmp_name = cmp_name;
-      employer.cmp_email = cmp_email;
-      employer.cmp_mobn = cmp_mobn;
-      employer.cmp_webs = cmp_webs;
-      employer.emp_loca = emp_loca;
-      employer.emp_addr = emp_addr;
-      await employer.save();
-      res.status(200).json(employer);
-    } else {
-      res.status(404).json({ error: "Employer not found" });
+    if (!employer) {
+      return res.status(404).json({ error: "Employer not found" });
     }
+
+    // Check for duplicate email and mobile, ignoring the current employer's ID
+    const duplicateEmail = await Employer.findOne({
+      where: { cmp_email, cmp_code: { [Op.ne]: employer.cmp_code } },
+    });
+    if (duplicateEmail) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+
+    const duplicateMobile = await Employer.findOne({
+      where: { cmp_mobn, cmp_code: { [Op.ne]: employer.cmp_code } },
+    });
+    if (duplicateMobile) {
+      return res.status(400).json({ error: "Mobile number already in use" });
+    }
+
+    // Update Employer record
+    Object.assign(employer, {
+      cmp_name,
+      cmp_email,
+      cmp_mobn,
+      cmp_webs,
+      emp_loca,
+      emp_addr,
+    });
+    await employer.save();
+
+    res.status(200).json(employer);
   } catch (error) {
     res.status(500).json({ error: "Error updating employer" });
   }
