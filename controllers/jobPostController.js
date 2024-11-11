@@ -42,9 +42,6 @@ const { aggregateData } = require("../utils/aggregator");
  *                 type: string
  *               required_skills:
  *                 type: string
- *               company_id:
- *                 type: integer
- *                 description: ID of the company (Employer)
  *     responses:
  *       201:
  *         description: Job post created successfully
