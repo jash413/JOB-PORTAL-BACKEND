@@ -524,6 +524,10 @@ const authService = {
         throw new AuthenticationError("Mobile number already exists");
     }
 
+    // If email or mobile number is updated, reset verification status
+    if (login_email !== user.login_email) user.email_ver_status = 0;
+    if (login_mobile !== user.login_mobile) user.phone_ver_status = 0;
+
     user.login_name = login_name;
     user.login_email = login_email;
     user.login_mobile = login_mobile;
