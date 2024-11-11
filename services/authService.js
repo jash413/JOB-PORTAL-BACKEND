@@ -424,19 +424,16 @@ const authService = {
    */
   async sendPhoneVerificationOTP(user) {
     try {
+      const login_user = await Login.findByPk(user.login_id);
       const otp = this.generateOTP();
       const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
-      console.log(user);
-      user.phone_otp = otp;
-      user.phone_otp_expiry = otpExpiry;
 
-      await Login.update(
-        { phone_otp: otp, phone_otp_expiry: otpExpiry },
-        { where: { login_id: user.login_id } }
-      );
+      login_user.phone_otp = otp;
+      login_user.phone_otp_expiry = otpExpiry;
+      await login_user.save();
 
       await this.sendSMS(
-        user.login_mobile,
+        login_user.login_mobile,
         `OTP for SAISUN iFAS ERP App is : ${otp}`
       );
 
