@@ -20,12 +20,12 @@ const { aggregateData } = require("../utils/aggregator");
  *             type: object
  *             required:
  *               - candidateId
- *               - jobPostId
+ *               - job_id
  *             properties:
  *               candidateId:
  *                 type: integer
  *                 description: The ID of the candidate applying.
- *               jobPostId:
+ *               job_id:
  *                 type: integer
  *                 description: The ID of the job post to apply for.
  *     responses:
@@ -45,12 +45,12 @@ const { aggregateData } = require("../utils/aggregator");
  *         description: Failed to apply for the job.
  */
 exports.applyForJob = async (req, res) => {
-  const { candidateId, jobPostId } = req.body;
+  const { candidateId, job_id } = req.body;
 
   try {
     // Check if the candidate has already applied for this job
     const existingApplication = await JobApplication.findOne({
-      where: { candidateId, jobPostId },
+      where: { candidateId, job_id },
     });
 
     if (existingApplication) {
@@ -62,7 +62,7 @@ exports.applyForJob = async (req, res) => {
     // Create a new job application
     const jobApplication = await JobApplication.create({
       candidateId,
-      jobPostId,
+      job_id,
     });
     res.status(201).json({
       message: "Job application submitted successfully.",

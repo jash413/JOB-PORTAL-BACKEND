@@ -2,6 +2,7 @@ const JobPost = require("../models/jobPost");
 const Employer = require("../models/employer");
 const JobCate = require("../models/jobCate");
 const JobApplication = require("../models/jobApplication");
+const sequelize = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -228,6 +229,24 @@ exports.getAllJobPosts = async (req, res) => {
       rangeFields,
       searchFields,
       allowedSortFields,
+    });
+
+    // Count the total number of job applications for each job post
+    const jobPostIds = aggregatedData.records.map((jobPost) => jobPost.job_id);
+
+    const jobApplications = await JobApplication.findAll({
+      where: { job_id: jobPostIds },
+      attributes: ["job_id", [sequelize.fn("COUNT", "job_id"), "totalApplications"]],
+      group: ["job_id"],
+    });
+
+    // Map the total number of applications to each job post
+    aggregatedData.records = aggregatedData.records.map((jobPost) => {
+      const totalApplications = jobApplications.find((app) => app.job_id === jobPost.job_id);
+      return {
+        ...jobPost.toJSON(),
+        totalApplications: totalApplications ? totalApplications.toJSON().totalApplications : 0,
+      };
     });
 
     res.status(200).json(aggregatedData);
