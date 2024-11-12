@@ -62,7 +62,7 @@ exports.createJobPost = async (req, res) => {
 
     const cmp_details = await Employer.findOne({
       where: { login_id: req.user.login_id },
-    }).then((cmp) => cmp.toJSON());
+    });
 
     const newJobPost = await JobPost.create({
       job_title,
