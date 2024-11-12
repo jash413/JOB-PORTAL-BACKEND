@@ -1,5 +1,6 @@
 const JobPost = require("../models/jobPost");
 const Employer = require("../models/employer");
+const JobCate = require("../models/jobCate");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -198,6 +199,11 @@ exports.getAllJobPosts = async (req, res) => {
         as: "employer",
         attributes: ["cmp_name", "cmp_email", "cmp_mobn"],
       },
+      {
+        model: JobCate,
+        as: "job_cate",
+        attributes: ["cate_desc"],
+      }
     ];
 
     // Fields that support equality filtering
