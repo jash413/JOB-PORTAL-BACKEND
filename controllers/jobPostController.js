@@ -201,7 +201,7 @@ exports.getAllJobPosts = async (req, res) => {
       },
       {
         model: JobCate,
-        as: "job_cate",
+        as: "job_category",
         attributes: ["cate_desc"],
       }
     ];
