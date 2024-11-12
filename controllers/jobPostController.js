@@ -64,6 +64,10 @@ exports.createJobPost = async (req, res) => {
       where: { login_id: req.user.login_id },
     });
 
+    if (!cmp_details) {
+      return res.status(404).json({ error: "Company Details not found" });
+    }
+
     const newJobPost = await JobPost.create({
       job_title,
       job_description,
