@@ -1,6 +1,8 @@
 const JobPost = require("../models/jobPost");
 const Employer = require("../models/employer");
 const JobCate = require("../models/jobCate");
+const JobApplication = require("../models/jobApplication");
+const sequelize = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -203,7 +205,7 @@ exports.getAllJobPosts = async (req, res) => {
         model: JobCate,
         as: "job_category",
         attributes: ["cate_desc"],
-      }
+      },
     ];
 
     // Fields that support equality filtering
@@ -227,6 +229,31 @@ exports.getAllJobPosts = async (req, res) => {
       rangeFields,
       searchFields,
       allowedSortFields,
+    });
+
+    // Find total number of applications for each job post
+    const jobPostIds = aggregatedData.data.map((jobPost) => jobPost.job_id);
+
+    const jobApplications = await JobApplication.findAll({
+      where: { job_id: jobPostIds },
+      attributes: [
+        "job_id",
+        [sequelize.fn("COUNT", "job_id"), "totalApplications"],
+      ],
+      group: ["job_id"],
+    });
+
+    // Map the total applications to the job posts
+    aggregatedData.data = aggregatedData.data.map((jobPost) => {
+      const totalApplications = jobApplications.find(
+        (app) => app.job_id === jobPost.job_id
+      );
+      return {
+        ...jobPost,
+        totalApplications: totalApplications
+          ? totalApplications.totalApplications
+          : 0,
+      };
     });
 
     res.status(200).json(aggregatedData);
