@@ -169,16 +169,23 @@ exports.getJobApplications = async (req, res) => {
   const { jobPostId } = req.params;
 
   try {
-    const applications = await JobApplication.findAll({
-      where: { jobPostId },
-      include: {
-        model: Candidate,
-        as: "candidate",
-        attributes: ["can_name", "can_email", "can_phone"],
-      },
+    const aggregatedData = await aggregateData({
+      baseModel: JobApplication,
+      includeModels: [
+        {
+          model: Candidate,
+          as: "candidate",
+          attributes: ["can_name", "can_code", "can_profile_img"],
+        },
+      ],
+      body: { jobPostId },
+      standardFields: ["candidateId"],
+      rangeFields: ["createdAt"],
+      searchFields: [],
+      allowedSortFields: ["createdAt"],
     });
 
-    res.status(200).json(applications);
+    res.status(200).json(aggregatedData);
   } catch (error) {
     console.error("Error fetching job applications:", error);
     res.status(500).json({ message: "Failed to fetch applications.", error });
