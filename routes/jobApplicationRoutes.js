@@ -21,6 +21,13 @@ router.post(
   JobApplicationController.getJobApplications
 );
 
+// Route to get all applications for a specific employer
+router.post(
+  "/for-each-employer",
+  authMiddleware([]),
+  JobApplicationController.getEmployerApplications
+);
+
 // Route for employers to update application status (accept/reject)
 router.put(
   "/application/:applicationId/status",
