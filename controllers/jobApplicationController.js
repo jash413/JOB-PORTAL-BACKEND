@@ -2,6 +2,7 @@
 const JobApplication = require("../models/jobApplication");
 const JobPost = require("../models/jobPost");
 const Candidate = require("../models/candidate");
+const JobCate = require("../models/jobCate");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -142,19 +143,43 @@ exports.getCandidateApplications = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/job-applications/job/{jobPostId}:
- *   get:
+ * /api/v1/job-applications/for-each-job-post:
+ *  post:
  *     summary: Get all job applications for a job post (for employers).
  *     tags: [Job Applications]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: jobPostId
- *         required: true
- *         schema:
- *           type: integer
- *         description: The ID of the job post.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by
+ *                 example: createdAt
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 example: ASC
+ *               job_id:
+ *                 type: string
+ *                 description: Job id for filtering candidates
+ *                 example: 1
+ *               candidateId:
+ *                type: string
+ *                description: Candidate id for filtering candidates
+ *                example: 1   
  *     responses:
  *       200:
  *         description: A list of job applications for the specified job post.
@@ -166,7 +191,7 @@ exports.getCandidateApplications = async (req, res) => {
  *         description: Failed to fetch applications.
  */
 exports.getJobApplications = async (req, res) => {
-  const { jobPostId } = req.params;
+  const { body } = req;
 
   try {
     const aggregatedData = await aggregateData({
@@ -176,10 +201,17 @@ exports.getJobApplications = async (req, res) => {
           model: Candidate,
           as: "candidate",
           attributes: ["can_name", "can_code", "can_profile_img"],
+          include: [
+            {
+              model: JobCate,
+              as: "job_category",
+              attributes: ["cate_desc"],
+            },
+          ],
         },
       ],
-      body: { jobPostId },
-      standardFields: ["candidateId"],
+      body,
+      standardFields: ["candidateId", "job_id"],
       rangeFields: ["createdAt"],
       searchFields: [],
       allowedSortFields: ["createdAt"],

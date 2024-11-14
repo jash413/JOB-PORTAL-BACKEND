@@ -74,6 +74,7 @@ const Candidate = sequelize.define(
 Candidate.belongsTo(JobCate, {
   foreignKey: "can_job_cate",
   as: "job_category",
+  targetKey: "cate_code",
 });
 
 module.exports = Candidate;

@@ -15,8 +15,8 @@ router.get(
 );
 
 // Route to get all applications for a specific job post (for employers)
-router.get(
-  "/job/:jobPostId",
+router.post(
+  "/for-each-job-post",
   authMiddleware([]),
   JobApplicationController.getJobApplications
 );
