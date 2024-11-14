@@ -180,6 +180,9 @@ exports.getCandidateApplications = async (req, res) => {
  *                type: string
  *                description: Candidate id for filtering candidates
  *                example: 1
+ *               status:
+ *                type: string
+ *                description: Job application status (accepted, rejected or pending)               
  *     responses:
  *       200:
  *         description: A list of job applications for the specified job post.
@@ -211,7 +214,7 @@ exports.getJobApplications = async (req, res) => {
         },
       ],
       body,
-      standardFields: ["candidateId", "job_id"],
+      standardFields: ["candidateId", "job_id", "status"],
       rangeFields: ["createdAt"],
       searchFields: [],
       allowedSortFields: ["createdAt"],
@@ -267,6 +270,9 @@ exports.getJobApplications = async (req, res) => {
  *                type: string
  *                description: Job category code for filtering job posts by category
  *                example: 1
+ *               status:
+ *                type: string
+ *                description: Job application status (accepted, rejected or pending)
  *     responses:
  *       200:
  *         description: A list of job applications for the specified job post.
@@ -316,7 +322,7 @@ exports.getEmployerApplications = async (req, res) => {
         ...body,
         job_id: jobIds, // Pass job IDs
       },
-      standardFields: ["job_id"],
+      standardFields: ["candidateId", "job_id", "status"],
       rangeFields: ["createdAt"],
       searchFields: [], // Specify search fields if necessary
       allowedSortFields: ["createdAt"],
