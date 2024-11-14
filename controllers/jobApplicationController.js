@@ -4,7 +4,6 @@ const JobPost = require("../models/jobPost");
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
 const { aggregateData } = require("../utils/aggregator");
-const { where } = require("sequelize");
 
 /**
  * @swagger
