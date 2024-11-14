@@ -334,6 +334,11 @@ exports.getEmployerApplications = async (req, res) => {
             },
           ],
         },
+        {
+          model: JobPost,
+          as: "job_post",
+          attributes: ["job_title", "job_location"],
+        }
       ],
       body: {
         ...body,
