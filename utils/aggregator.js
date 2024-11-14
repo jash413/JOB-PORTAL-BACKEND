@@ -40,6 +40,12 @@ const buildWhereClause = (body, allowedFilters, searchFields = []) => {
     (acc, [filterKey, { field, operator }]) => {
       if (body[filterKey] === undefined) return acc;
 
+      // Handle the case where the filter field is an array (like job_id IN (1,2,3))
+      if (Array.isArray(body[filterKey])) {
+        acc[field] = { [Op.in]: body[filterKey] };
+        return acc;
+      }
+
       if (operator === Op.between) {
         const from = body[`${filterKey}_from`];
         const to = body[`${filterKey}_to`];
