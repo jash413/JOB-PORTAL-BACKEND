@@ -263,6 +263,10 @@ exports.getJobApplications = async (req, res) => {
  *                type: string
  *                description: Candidate id for filtering candidates
  *                example: 1
+ *               job_cate:
+ *                type: string
+ *                description: Job category code for filtering job posts by category
+ *                example: 1
  *     responses:
  *       200:
  *         description: A list of job applications for the specified job post.
@@ -279,7 +283,7 @@ exports.getEmployerApplications = async (req, res) => {
   try {
     // Fetch job IDs for the given company ID with only the necessary field
     const jobIds = await JobPost.findAll({
-      where: { cmp_id: body.cmp_id },
+      where: { cmp_id: body.cmp_id, job_cate: body.job_cate },
       attributes: ["job_id"], // Only fetch job_id to reduce data load
       raw: true, // Improves speed by returning plain objects
     }).then((jobPosts) => jobPosts.map((job) => job.job_id));
