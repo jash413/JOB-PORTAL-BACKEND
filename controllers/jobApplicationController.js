@@ -3,6 +3,7 @@ const JobApplication = require("../models/jobApplication");
 const JobPost = require("../models/jobPost");
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
+const Employer = require("../models/employer");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -182,7 +183,7 @@ exports.getCandidateApplications = async (req, res) => {
  *                example: 1
  *               status:
  *                type: string
- *                description: Job application status (accepted, rejected or pending)               
+ *                description: Job application status (accepted, rejected or pending)
  *     responses:
  *       200:
  *         description: A list of job applications for the specified job post.
@@ -258,10 +259,6 @@ exports.getJobApplications = async (req, res) => {
  *                 type: string
  *                 description: Sort order (ASC or DESC)
  *                 example: ASC
- *               cmp_id:
- *                 type: string
- *                 description: Job id for filtering candidates
- *                 example: 1
  *               candidateId:
  *                type: string
  *                description: Candidate id for filtering candidates
@@ -287,21 +284,35 @@ exports.getEmployerApplications = async (req, res) => {
   const { body } = req;
 
   try {
-    // Fetch job IDs for the given company ID with only the necessary field
-    const jobIds = await JobPost.findAll({
-      where: { cmp_id: body.cmp_id, job_cate: body.job_cate },
-      attributes: ["job_id"], // Only fetch job_id to reduce data load
-      raw: true, // Improves speed by returning plain objects
-    }).then((jobPosts) => jobPosts.map((job) => job.job_id));
+    // Find the employer by the login ID from the request
+    const employer = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+    });
 
-    // Proceed only if job IDs exist to avoid unnecessary aggregation
+    // If no employer is found, return a 404 error
+    if (!employer) {
+      return res.status(404).json({ message: "Company not found." });
+    }
+
+    const employerData = employer.toJSON();
+
+    // Fetch job IDs for the employer’s company with the specified category
+    const jobPosts = await JobPost.findAll({
+      where: { cmp_id: employerData.cmp_code, job_cate: body.job_cate },
+      attributes: ["job_id"],
+      raw: true, // Returns plain objects for improved performance
+    });
+
+    const jobIds = jobPosts.map((job) => job.job_id);
+
+    // If there are no job postings found for the given criteria, return an empty response
     if (jobIds.length === 0) {
       return res
         .status(200)
         .json({ message: "No job applications found.", data: [] });
     }
 
-    // Call aggregateData with the correctly structured body
+    // Aggregating data for job applications based on the job IDs and other filters
     const aggregatedData = await aggregateData({
       baseModel: JobApplication,
       includeModels: [
@@ -320,7 +331,7 @@ exports.getEmployerApplications = async (req, res) => {
       ],
       body: {
         ...body,
-        job_id: jobIds, // Pass job IDs
+        job_id: jobIds,
       },
       standardFields: ["candidateId", "job_id", "status"],
       rangeFields: ["createdAt"],
@@ -328,12 +339,14 @@ exports.getEmployerApplications = async (req, res) => {
       allowedSortFields: ["createdAt"],
     });
 
-    res.status(200).json(aggregatedData);
+    // Return the aggregated job application data
+    return res.status(200).json(aggregatedData);
   } catch (error) {
     console.error("Error fetching job applications:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to fetch applications.", error: error.message });
+    return res.status(500).json({
+      message: "Failed to fetch applications.",
+      error: error.message,
+    });
   }
 };
 
