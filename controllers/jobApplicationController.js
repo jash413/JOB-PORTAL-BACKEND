@@ -5,6 +5,7 @@ const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
 const Employer = require("../models/employer");
 const { aggregateData } = require("../utils/aggregator");
+const e = require("cors");
 
 /**
  * @swagger
@@ -287,20 +288,25 @@ exports.getEmployerApplications = async (req, res) => {
     // Find the employer by the login ID from the request
     const employer = await Employer.findOne({
       where: { login_id: req.user.login_id },
+      attributes: ["cmp_code"],
+      raw: true,
     });
 
-    // If no employer is found, return a 404 error
     if (!employer) {
-      return res.status(404).json({ message: "Company not found." });
+      return res.status(404).json({ message: "Employer not found." });
     }
 
-    const employerData = employer.toJSON();
+    // Build filters more efficiently
+    const filters = {
+      cmp_id: employer.cmp_code,
+      ...(body.job_cate && { job_cate: body.job_cate }),
+    };
 
-    // Fetch job IDs for the employer’s company with the specified category
+    // Fetch job IDs efficiently with selective attributes
     const jobPosts = await JobPost.findAll({
-      where: { cmp_id: employerData.cmp_code, job_cate: body.job_cate },
+      where: filters,
       attributes: ["job_id"],
-      raw: true, // Returns plain objects for improved performance
+      raw: true,
     });
 
     const jobIds = jobPosts.map((job) => job.job_id);
