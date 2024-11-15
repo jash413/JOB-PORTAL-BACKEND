@@ -36,10 +36,6 @@ const Candidate = require("../models/candidate");
  *               sortOrder:
  *                 type: string
  *                 description: Sort order (asc or desc)
- *               can_code:
- *                 type: integer
- *                 description: Candidate code
- *                 example: 0
  *     responses:
  *       200:
  *         description: List of education records
@@ -56,20 +52,33 @@ const Candidate = require("../models/candidate");
  */
 exports.getEducationByCandidate = async (req, res) => {
   try {
+    const { body } = req;
+
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
     // Models to be included in the query
     const includeModels = [];
 
     // Fields for filtering, searching, and sorting
-    const standardFields = ["can_code"];
+    const standardFields = [];
     const rangeFields = [];
-    const searchFields = [];
+    const searchFields = ["can_edu", "can_scho", "can_stre"];
     const allowedSortFields = ["can_pasy"];
 
     // Aggregation of candidate data with filters, pagination, and sorting
     const aggregatedData = await aggregateData({
       baseModel: CandidateEducation,
       includeModels,
-      body: req.body,
+      body: {
+        ...body,
+        can_code: candidate.can_code,
+      },
       standardFields,
       rangeFields,
       searchFields,
@@ -175,7 +184,6 @@ exports.getEducationById = async (req, res) => {
  */
 exports.createEducation = async (req, res) => {
   try {
-
     const candidate = await Candidate.findOne({
       where: { login_id: req.user.login_id },
     });
@@ -184,14 +192,8 @@ exports.createEducation = async (req, res) => {
       return res.status(404).json({ error: "Candidate not found" });
     }
 
-    const {
-      can_edu,
-      can_scho,
-      can_pasy,
-      can_perc,
-      can_stre,
-      can_cgpa,
-    } = req.body;
+    const { can_edu, can_scho, can_pasy, can_perc, can_stre, can_cgpa } =
+      req.body;
 
     const newEducation = await CandidateEducation.create({
       can_edu,
