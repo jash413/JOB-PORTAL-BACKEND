@@ -333,6 +333,8 @@ exports.getEmployerApplications = async (req, res) => {
             "can_profile_img",
             "can_about",
             "can_skill",
+            "can_email",
+            "can_mobn",
           ],
           include: [
             {
