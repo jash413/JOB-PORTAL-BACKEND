@@ -551,9 +551,6 @@ exports.requestAccessToCandidate = async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               employerId:
- *                 type: integer
- *                 description: ID of the employer
  *               search:
  *                 type: string
  *                 description: Search term for candidate name or email
@@ -633,6 +630,17 @@ exports.requestAccessToCandidate = async (req, res) => {
  */
 exports.getApprovedCandidates = async (req, res) => {
   try {
+
+    const {body} = req;
+
+    const employer = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!employer) {
+      return res.status(404).json({ error: "Employer not found" });
+    }
+
     const standardFields = ["employerId"]; // Filter by employer ID
     const includeModels = [
       {
@@ -641,13 +649,16 @@ exports.getApprovedCandidates = async (req, res) => {
         as: "Candidate",
       },
     ]; // Include candidate model
-    const searchFields = ["Candidate.can_name", "Candidate.can_email"]; // Allow searching by candidate name and email
+    const searchFields = []; // Allow searching by candidate name and email
     const allowedSortFields = ["grantedAt"]; // Sort by the date the access was granted
 
     const aggregatedData = await aggregateData({
       baseModel: ProfileAccess,
       includeModels,
-      body: req.body, // Including filters, pagination, sorting from the request body
+      body: {
+        ...body,
+        employerId: employer.cmp_code,
+      }, // Including filters, pagination, sorting from the request body
       standardFields,
       searchFields,
       allowedSortFields,
@@ -690,5 +701,260 @@ exports.getEmployersAccessibleToCandidate = async (req, res) => {
     res.status(200).json(aggregatedData);
   } catch (error) {
     res.status(500).json({ message: "Error fetching employers", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/employers/get-not-accessible-candidates:
+ *   post:
+ *     summary: Retrieve a list of non accessible candidates with dynamic filters, sorting, searching, and pagination
+ *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by
+ *                 example: cmp_name
+ *                 enum: [cmp_name, emp_loca]
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 example: ASC
+ *                 enum: [ASC, DESC]
+ *               search:
+ *                 type: string
+ *                 description: Search term for company name or location(city)
+ *                 example: webwise solution
+ *     responses:
+ *       200:
+ *         description: List of employers with pagination and filter details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of items
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     nextPage:
+ *                       type: integer
+ *                       description: Next page number
+ *                     prevPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       description: Has next page
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       description: Has previous page
+ *       500:
+ *         description: Error fetching employers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
+  try {
+    const { body } = req;
+
+    const employer = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!employer) {
+      return res.status(404).json({ error: "Employer not found" });
+    }
+
+    // Fetch all candidate IDs that are accessible to the employer
+    const accessibleCandidateIds = await ProfileAccess.findAll({
+      where: { employerId: employer.cmp_code },
+      attributes: ["candidateId"],
+      raw: true, // Returns plain objects instead of Sequelize instances
+    }).then((accessList) => accessList.map((access) => access.candidateId));
+
+    // Get all candidates not in the list of accessible candidate IDs
+    const candidates = await Candidate.findAll({
+      where: {
+        can_code: {
+          [Op.notIn]: accessibleCandidateIds,
+        },
+      },
+      attributes: ["can_code"], // Only fetch `can_code` for aggregation
+      raw: true,
+    });
+
+    const candidateCodes = candidates.map((candidate) => candidate.can_code);
+
+    // Aggregate data using candidate codes
+    const aggregatedData = await aggregateData({
+      baseModel: Candidate,
+      includeModels: [], // No associated models to include
+      body: {
+        ...body,
+        can_code: candidateCodes,
+      },
+      standardFields: ["can_name", "can_email", "can_code"],
+      rangeFields: [], // No range filters required
+      searchFields: ["can_name", "can_email"],
+      allowedSortFields: ["createdAt"],
+    });
+
+    return res.status(200).json(aggregatedData);
+  } catch (error) {
+    console.error(
+      "Error fetching candidates not accessible to employer:",
+      error
+    );
+    return res
+      .status(500)
+      .json({ message: "Error fetching candidates", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/employers/get-access-requests:
+ *   post:
+ *     summary: Retrieve a list of access requests with dynamic filters, sorting, searching, and pagination
+ *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by
+ *                 example: cmp_name
+ *                 enum: [cmp_name, emp_loca]
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 example: ASC
+ *                 enum: [ASC, DESC]
+ *               search:
+ *                 type: string
+ *                 description: Search term for company name or location(city)
+ *                 example: webwise solution
+ *     responses:
+ *       200:
+ *         description: List of employers with pagination and filter details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of items
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     nextPage:
+ *                       type: integer
+ *                       description: Next page number
+ *                     prevPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       description: Has next page
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       description: Has previous page
+ *       500:
+ *         description: Error fetching employers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.getAccessRequests = async (req, res) => {
+  try {
+    const { body } = req;
+
+    const employer = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!employer) {
+      return res.status(404).json({ error: "Employer not found" });
+    }
+
+    const accessRequests = await aggregateData({
+      baseModel: AccessRequest,
+      includeModels: [
+        {
+          model: Candidate,
+          attributes: ["can_name", "can_email"],
+          as: "Candidate",
+        },
+      ],
+      body: {
+        ...body,
+        employerId: employer.cmp_code,
+      },
+      standardFields: ["employerId", "candidateId", "status"],
+      rangeFields: [],
+      searchFields: [],
+      allowedSortFields: ["requestedAt"],
+    });
+
+    res.status(200).json(accessRequests);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching access requests", error });
   }
 };

@@ -46,7 +46,25 @@ router.post(
   employerController.requestAccessToCandidate
 );
 
+// Get all candidates not accessible by the employer
+router.post(
+  "/get-not-accessible-candidates",
+  authMiddleware(["EMP"]),
+  employerController.getCandidatesNotAccessibleToEmployer
+);
+
+// Get all access requests made by the employer
+router.post(
+  "/get-access-requests",
+  authMiddleware(["EMP"]),
+  employerController.getAccessRequests
+);
+
 // View approved candidates (filtered/paginated)
-router.post("/approved-candidates", employerController.getApprovedCandidates);
+router.post(
+  "/approved-candidates",
+  authMiddleware(["EMP"]),
+  employerController.getApprovedCandidates
+);
 
 module.exports = router;
