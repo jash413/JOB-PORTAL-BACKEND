@@ -213,6 +213,11 @@ exports.getCandidateById = async (req, res) => {
  *               reg_date:
  *                 type: string
  *                 format: date
+ *               can_skill:
+ *                 type: string
+ *               can_about:
+ *                 type: string
+ *                 description: About candidate
  *               profileImage:
  *                 type: string
  *                 format: binary
@@ -265,7 +270,7 @@ exports.createCandidate = async (req, res) => {
       "profileImage",
       "resume",
     ]);
-    const { can_name, can_email, can_mobn, can_job_cate, reg_date } = req.body;
+    const { can_name, can_email, can_mobn, can_job_cate, reg_date, can_about, can_skill } = req.body;
 
     // Extract uploaded file paths
     const profileImageUrl = uploadedFiles.profileImage || null;
@@ -279,6 +284,8 @@ exports.createCandidate = async (req, res) => {
       can_mobn,
       can_job_cate,
       reg_date,
+      can_about,
+      can_skill,
       can_profile_img: profileImageUrl,
       can_resume: resumeUrl,
     });
