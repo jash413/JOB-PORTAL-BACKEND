@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db"); // assuming you have a config file for db connection
-const Candidate = require("../models/candidate");
 
 const CandidateEducation = sequelize.define(
   "CandidateEducation",
@@ -44,11 +43,5 @@ const CandidateEducation = sequelize.define(
     timestamps: false,
   }
 );
-
-// Define a relationship between Candidate and JobCate models
-CandidateEducation.belongsTo(Candidate, {
-  foreignKey: "can_code",
-  as: "candidate",
-});
 
 module.exports = CandidateEducation;

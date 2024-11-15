@@ -3,6 +3,8 @@ const JobApplication = require("../models/jobApplication");
 const JobPost = require("../models/jobPost");
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
+const CandidateEducation = require("../models/candidateEdu");
+const CandidateExperience = require("../models/candidateExpDetails");
 const Employer = require("../models/employer");
 const { aggregateData } = require("../utils/aggregator");
 const e = require("cors");
@@ -325,12 +327,42 @@ exports.getEmployerApplications = async (req, res) => {
         {
           model: Candidate,
           as: "candidate",
-          attributes: ["can_name", "can_code", "can_profile_img"],
+          attributes: [
+            "can_name",
+            "can_code",
+            "can_profile_img",
+            "can_about",
+            "can_skill",
+          ],
           include: [
             {
               model: JobCate,
               as: "job_category",
               attributes: ["cate_desc"],
+            },
+            {
+              model: CandidateEducation,
+              as: "candidate_edu",
+              attributes: [
+                "can_edu",
+                "can_scho",
+                "can_pasy",
+                "can_perc",
+                "can_stre",
+                "can_cgpa",
+              ],
+            },
+            {
+              model: CandidateExperience,
+              as: "candidate_exp",
+              attributes: [
+                "emp_name",
+                "exp_type",
+                "exp_desg",
+                "cur_ctc",
+                "job_stdt",
+                "job_endt",
+              ],
             },
           ],
         },
@@ -338,7 +370,7 @@ exports.getEmployerApplications = async (req, res) => {
           model: JobPost,
           as: "job_post",
           attributes: ["job_title", "job_location"],
-        }
+        },
       ],
       body: {
         ...body,

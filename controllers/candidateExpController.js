@@ -57,13 +57,7 @@ const { aggregateData } = require("../utils/aggregator");
 exports.getExpDetailsByCandidate = async (req, res) => {
   try {
     // Models to be included in the query
-    const includeModels = [
-      {
-        model: Candidate,
-        as: "candidate",
-        attributes: ["can_mobn", "can_email", "can_name"],
-      },
-    ];
+    const includeModels = [];
 
     // Fields for filtering, searching, and sorting
     const standardFields = ["can_code"];

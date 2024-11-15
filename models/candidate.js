@@ -1,6 +1,8 @@
 // models/candidate.js
 const { DataTypes } = require("sequelize");
 const JobCate = require("./jobCate"); // Import JobCate model
+const CandidateExpDetails = require("./candidateExpDetails"); // Import CandidateExpDetails model
+const CandidateEduDetails = require("./candidateEdu"); // Import CandidateEduDetails model
 const sequelize = require("../config/db"); // Sequelize initialized in config/db.js
 
 const Candidate = sequelize.define(
@@ -75,6 +77,20 @@ Candidate.belongsTo(JobCate, {
   foreignKey: "can_job_cate",
   as: "job_category",
   targetKey: "cate_code",
+});
+
+// Define a relationship between Candidate and CandidateExpDetails models
+Candidate.hasMany(CandidateExpDetails, {
+  foreignKey: "can_code",
+  as: "candidate_exp",
+  sourceKey: "can_code",
+});
+
+// Define a relationship between Candidate and CandidateEduDetails models
+Candidate.hasMany(CandidateEduDetails, {
+  foreignKey: "can_code",
+  as: "candidate_edu",
+  sourceKey: "can_code",
 });
 
 module.exports = Candidate;
