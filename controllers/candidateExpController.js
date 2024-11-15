@@ -67,7 +67,7 @@ exports.getExpDetailsByCandidate = async (req, res) => {
     const includeModels = [];
 
     // Fields for filtering, searching, and sorting
-    const standardFields = [];
+    const standardFields = ["can_code"];
     const rangeFields = [];
     const searchFields = [];
     const allowedSortFields = ["job_endt", "job_stdt"];

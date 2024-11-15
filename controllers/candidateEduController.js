@@ -66,7 +66,7 @@ exports.getEducationByCandidate = async (req, res) => {
     const includeModels = [];
 
     // Fields for filtering, searching, and sorting
-    const standardFields = [];
+    const standardFields = ["can_code"];
     const rangeFields = [];
     const searchFields = ["can_edu", "can_scho", "can_stre"];
     const allowedSortFields = ["can_pasy"];
