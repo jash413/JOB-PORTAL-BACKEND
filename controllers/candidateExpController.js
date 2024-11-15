@@ -36,9 +36,6 @@ const { aggregateData } = require("../utils/aggregator");
  *               sortOrder:
  *                 type: string
  *                 description: Sort order (asc or desc)
- *               can_code:
- *                 type: integer
- *                 description: Candidate code
  *     responses:
  *       200:
  *         description: Experience details retrieved successfully
@@ -53,14 +50,24 @@ const { aggregateData } = require("../utils/aggregator");
  *       500:
  *         description: Internal server error
  */
-// Get all experience details for a candidate
 exports.getExpDetailsByCandidate = async (req, res) => {
   try {
+
+    const {body} = req;
+
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
     // Models to be included in the query
     const includeModels = [];
 
     // Fields for filtering, searching, and sorting
-    const standardFields = ["can_code"];
+    const standardFields = [];
     const rangeFields = [];
     const searchFields = [];
     const allowedSortFields = ["job_endt", "job_stdt"];
@@ -69,7 +76,10 @@ exports.getExpDetailsByCandidate = async (req, res) => {
     const aggregatedData = await aggregateData({
       baseModel: CandidateExpDetails,
       includeModels,
-      body: req.body,
+      body: {
+        ...body,
+        can_code: candidate.can_code,
+      },
       standardFields,
       rangeFields,
       searchFields,
