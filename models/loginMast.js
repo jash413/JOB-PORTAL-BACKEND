@@ -29,7 +29,7 @@ const Login = sequelize.define(
     },
     login_mobile: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     login_pass: {
       type: DataTypes.STRING,

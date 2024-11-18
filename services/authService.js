@@ -248,21 +248,26 @@ const authService = {
    * @returns {Object} User object
    */
   async findOrCreateGoogleUser(payload, login_type) {
-    const { email, name, picture } = payload;
-    let user = await Login.findOne({ where: { login_email: email } });
-    if (!user) {
-      user = await Login.create({
-        login_name: name,
-        login_email: email,
-        login_type: login_type,
-        login_pass: this.hashPassword(crypto.randomBytes(20).toString("hex")),
-        reg_date: new Date(),
-        profile_picture: picture,
-        email_ver_status: 1, // Google accounts are considered verified
-        phone_verified: 0, // Phone verification still required
-      });
+    try {
+      const { email, name } = payload;
+      let user = await Login.findOne({ where: { login_email: email } });
+      if (!user) {
+        user = await Login.create({
+          login_name: name,
+          login_email: email,
+          login_type: login_type,
+          login_pass: await this.hashPassword(
+            crypto.randomBytes(20).toString("hex")
+          ),
+          reg_date: new Date(),
+          email_ver_status: 1, // Google accounts are considered verified
+        });
+      }
+      return user;
+    } catch (error) {
+      console.error("Error finding or creating Google user:", error);
+      throw new AuthenticationError("Failed to find or create Google user");
     }
-    return user;
   },
 
   /**
