@@ -941,7 +941,13 @@ exports.getAccessRequests = async (req, res) => {
       includeModels: [
         {
           model: Candidate,
-          attributes: ["can_name", "can_email", "can_about", "can_skill"],
+          attributes: [
+            "can_name",
+            "can_email",
+            "can_mobn",
+            "can_about",
+            "can_skill",
+          ],
           as: "Candidate",
           include: [
             {
