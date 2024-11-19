@@ -2,6 +2,9 @@ const Employer = require("../models/employer");
 const Candidate = require("../models/candidate");
 const AccessRequest = require("../models/accessRequest");
 const ProfileAccess = require("../models/profileAccess");
+const JobCate = require("../models/jobCate");
+const CandidateEducation = require("../models/candidateEdu");
+const CandidateExperience = require("../models/candidateExpDetails");
 const { Op } = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -630,8 +633,7 @@ exports.requestAccessToCandidate = async (req, res) => {
  */
 exports.getApprovedCandidates = async (req, res) => {
   try {
-
-    const {body} = req;
+    const { body } = req;
 
     const employer = await Employer.findOne({
       where: { login_id: req.user.login_id },
@@ -939,8 +941,39 @@ exports.getAccessRequests = async (req, res) => {
       includeModels: [
         {
           model: Candidate,
-          attributes: ["can_name", "can_email", "login_id"],
+          attributes: ["can_name", "can_email", "can_about", "can_skill"],
           as: "Candidate",
+          include: [
+            {
+              model: JobCate,
+              as: "job_category",
+              attributes: ["cate_desc"],
+            },
+            {
+              model: CandidateEducation,
+              as: "candidate_edu",
+              attributes: [
+                "can_edu",
+                "can_scho",
+                "can_pasy",
+                "can_perc",
+                "can_stre",
+                "can_cgpa",
+              ],
+            },
+            {
+              model: CandidateExperience,
+              as: "candidate_exp",
+              attributes: [
+                "emp_name",
+                "exp_type",
+                "exp_desg",
+                "cur_ctc",
+                "job_stdt",
+                "job_endt",
+              ],
+            },
+          ],
         },
       ],
       body: {
@@ -955,6 +988,7 @@ exports.getAccessRequests = async (req, res) => {
 
     res.status(200).json(accessRequests);
   } catch (error) {
+    console.error("Error fetching access requests:", error);
     res.status(500).json({ message: "Error fetching access requests", error });
   }
 };
