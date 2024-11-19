@@ -13,7 +13,7 @@ router.post(
 ); // Get all candidates
 router.get(
   "/:id",
-  authMiddleware(["AMN", "CND"]),
+  authMiddleware(["AMN", "CND", "EMP"]),
   candidateController.getCandidateById
 ); // Get a specific candidate
 router.post(

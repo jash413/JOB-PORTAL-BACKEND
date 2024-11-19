@@ -3,6 +3,8 @@
 const Candidate = require("../models/candidate");
 const JobCate = require("../models/jobCate");
 const Login = require("../models/loginMast");
+const CandidateExpDetails = require("../models/candidateExpDetails");
+const CandidateEduDetails = require("../models/candidateEdu");
 const createFileUploadConfig = require("../utils/fileUpload");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -175,6 +177,37 @@ exports.getCandidateById = async (req, res) => {
     const { id } = req.params;
     const candidate = await Candidate.findOne({
       where: { login_id: id },
+      include: [
+        {
+          model: JobCate,
+          as: "job_category",
+          attributes: ["cate_desc"],
+        },
+        {
+          model: CandidateEduDetails,
+          as: "candidate_edu",
+          attributes: [
+            "can_edu",
+            "can_scho",
+            "can_pasy",
+            "can_perc",
+            "can_stre",
+            "can_cgpa",
+          ],
+        },
+        {
+          model: CandidateExpDetails,
+          as: "candidate_exp",
+          attributes: [
+            "emp_name",
+            "exp_type",
+            "exp_desg",
+            "cur_ctc",
+            "job_stdt",
+            "job_endt",
+          ],
+        },
+      ],
     });
 
     if (!candidate) {
@@ -270,7 +303,15 @@ exports.createCandidate = async (req, res) => {
       "profileImage",
       "resume",
     ]);
-    const { can_name, can_email, can_mobn, can_job_cate, reg_date, can_about, can_skill } = req.body;
+    const {
+      can_name,
+      can_email,
+      can_mobn,
+      can_job_cate,
+      reg_date,
+      can_about,
+      can_skill,
+    } = req.body;
 
     // Extract uploaded file paths
     const profileImageUrl = uploadedFiles.profileImage || null;
