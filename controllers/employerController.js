@@ -790,35 +790,56 @@ exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
   try {
     const { body } = req;
 
+    // Fetch employer details
     const employer = await Employer.findOne({
       where: { login_id: req.user.login_id },
+      attributes: ["cmp_code"], // Only fetch required field
     });
 
     if (!employer) {
       return res.status(404).json({ error: "Employer not found" });
     }
 
-    // Fetch all candidate IDs that are accessible to the employer
-    const accessibleCandidateIds = await ProfileAccess.findAll({
-      where: { employerId: employer.cmp_code },
-      attributes: ["candidateId"],
-      raw: true, // Returns plain objects instead of Sequelize instances
-    }).then((accessList) => accessList.map((access) => access.candidateId));
+    const employerId = employer.cmp_code;
 
-    // Get all candidates not in the list of accessible candidate IDs
+    // Fetch accessible candidate IDs and access requests in parallel
+    const [accessibleCandidates, accessRequests] = await Promise.all([
+      ProfileAccess.findAll({
+        where: { employerId },
+        attributes: ["candidateId"],
+        raw: true,
+      }),
+      AccessRequest.findAll({
+        where: { employerId },
+        attributes: ["candidateId"],
+        raw: true,
+      }),
+    ]);
+
+    const accessibleCandidateIds = new Set(
+      accessibleCandidates.map((a) => a.candidateId)
+    );
+    const accessRequestIds = new Set(accessRequests.map((a) => a.candidateId));
+
+    // Filter accessible candidates to exclude those with access requests
+    const filteredCandidateIds = [...accessibleCandidateIds].filter(
+      (id) => !accessRequestIds.has(id)
+    );
+
+    // Fetch candidates not in the filtered list
     const candidates = await Candidate.findAll({
       where: {
         can_code: {
-          [Op.notIn]: accessibleCandidateIds,
+          [Op.notIn]: filteredCandidateIds,
         },
       },
-      attributes: ["can_code"], // Only fetch `can_code` for aggregation
+      attributes: ["can_code"],
       raw: true,
     });
 
     const candidateCodes = candidates.map((candidate) => candidate.can_code);
 
-    // Aggregate data using candidate codes
+    // Aggregate candidate data
     const aggregatedData = await aggregateData({
       baseModel: Candidate,
       includeModels: [], // No associated models to include
