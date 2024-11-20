@@ -802,35 +802,20 @@ exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
 
     const employerId = employer.cmp_code;
 
-    // Fetch accessible candidate IDs and access requests in parallel
-    const [accessibleCandidates, accessRequests] = await Promise.all([
-      ProfileAccess.findAll({
-        where: { employerId },
-        attributes: ["candidateId"],
-        raw: true,
-      }),
-      AccessRequest.findAll({
-        where: { employerId },
-        attributes: ["candidateId"],
-        raw: true,
-      }),
-    ]);
+    // Fetch all candidate IDs from access requests created by the employer
+    const accessRequests = await AccessRequest.findAll({
+      where: { employerId },
+      attributes: ["candidateId"],
+      raw: true,
+    });
 
-    const accessibleCandidateIds = new Set(
-      accessibleCandidates.map((a) => a.candidateId)
-    );
     const accessRequestIds = new Set(accessRequests.map((a) => a.candidateId));
 
-    // Filter accessible candidates to exclude those with access requests
-    const filteredCandidateIds = [...accessibleCandidateIds].filter(
-      (id) => !accessRequestIds.has(id)
-    );
-
-    // Fetch candidates not in the filtered list
+    // Fetch candidates not in the list of access requests
     const candidates = await Candidate.findAll({
       where: {
         can_code: {
-          [Op.notIn]: filteredCandidateIds,
+          [Op.notIn]: [...accessRequestIds],
         },
       },
       attributes: ["can_code"],
@@ -864,6 +849,7 @@ exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
       .json({ message: "Error fetching candidates", error });
   }
 };
+
 
 /**
  * @swagger
