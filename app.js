@@ -12,7 +12,7 @@ const errorHandler = require("./middlewares/errorHandler");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const cors = require("cors");
-const fs = require('fs');
+const fs = require("fs");
 
 const app = express();
 
@@ -40,6 +40,10 @@ const swaggerOptions = {
         url: "https://job-portal-backend-production.up.railway.app", // Base URL for all endpoints
         description: "Development server",
       },
+      {
+        url: "https://saisunsolutions.com/initadmin/ifasjob", // Base URL for all endpoints
+        description: "Production server",
+      },
     ],
   },
   apis: [
@@ -52,7 +56,7 @@ const swaggerOptions = {
     "./controllers/jobPostController.js",
     "./controllers/adminController.js",
     "./controllers/jobApplicationController.js",
-  ]
+  ],
 };
 
 // Initialize swagger-jsdoc to generate Swagger documentation
