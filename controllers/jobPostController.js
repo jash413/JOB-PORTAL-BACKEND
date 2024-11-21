@@ -43,8 +43,8 @@ const Candidate = require("../models/candidate");
  *                 type: string
  *               job_location:
  *                 type: string
- *               salary_range:
- *                 type: string
+ *               salary:
+ *                 type: integer
  *               required_skills:
  *                 type: string
  *     responses:
@@ -61,7 +61,7 @@ exports.createJobPost = async (req, res) => {
       job_description,
       job_cate,
       job_location,
-      salary_range,
+      salary,
       required_skills,
     } = req.body;
 
@@ -78,7 +78,7 @@ exports.createJobPost = async (req, res) => {
       job_description,
       job_cate,
       job_location,
-      salary_range,
+      salary,
       required_skills,
       cmp_id: cmp_details.cmp_code,
     });
@@ -156,8 +156,8 @@ exports.createJobPost = async (req, res) => {
  *                         type: integer
  *                       job_location:
  *                         type: string
- *                       salary_range:
- *                         type: string
+ *                       salary:
+ *                         type: integer
  *                       required_skills:
  *                         type: string
  *                       cmp_id:
@@ -298,8 +298,8 @@ exports.getAllJobPosts = async (req, res) => {
  *                   type: string
  *                 job_location:
  *                   type: string
- *                 salary_range:
- *                   type: string
+ *                 salary:
+ *                   type: integer
  *                 required_skills:
  *                   type: string
  *                 company_id:
@@ -366,8 +366,8 @@ exports.getJobPostById = async (req, res) => {
  *                 type: string
  *               job_location:
  *                 type: string
- *               salary_range:
- *                 type: string
+ *               salary:
+ *                 type: integer
  *               required_skills:
  *                 type: string
  *     responses:
@@ -387,7 +387,7 @@ exports.updateJobPost = async (req, res) => {
       job_description,
       job_cate,
       job_location,
-      salary_range,
+      salary,
       required_skills,
     } = req.body;
 
@@ -401,7 +401,7 @@ exports.updateJobPost = async (req, res) => {
     jobPost.job_description = job_description || jobPost.job_description;
     jobPost.job_cate = job_cate || jobPost.job_cate;
     jobPost.job_location = job_location || jobPost.job_location;
-    jobPost.salary_range = salary_range || jobPost.salary_range;
+    jobPost.salary = salary || jobPost.salary;
     jobPost.required_skills = required_skills || jobPost.required_skills;
 
     await jobPost.save();
@@ -493,10 +493,16 @@ exports.deleteJobPost = async (req, res) => {
  *                 type: integer
  *                 description: Filter by job cate (e.g., Accountant (Senior))
  *                 example: 1
- *               salary_range:
- *                 type: string
+ *               salary:
+ *                 type: integer
  *                 description: Filter by salary range
  *                 example: "10000-20000"
+ *               posted_at_from:
+ *                 type: string
+ *                 description: Filter job posts posted from a specific date
+ *               posted_at_to:
+ *                 type: string
+ *                 description: Filter job posts posted up to a specific date
  *     responses:
  *       200:
  *         description: List of job posts
@@ -520,8 +526,8 @@ exports.deleteJobPost = async (req, res) => {
  *                         type: integer
  *                       job_location:
  *                         type: string
- *                       salary_range:
- *                         type: string
+ *                       salary:
+ *                         type: integer
  *                       required_skills:
  *                         type: string
  *                       cmp_id:
@@ -529,6 +535,10 @@ exports.deleteJobPost = async (req, res) => {
  *                       posted_at:
  *                         type: string
  *                         format: date-time
+ *                       salary_from:
+ *                         type: integer
+ *                       salary_to:
+ *                         type: integer
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -612,9 +622,10 @@ exports.getJobPosts = async (req, res) => {
         cmp_id: employerIds,
         job_id: uniqueJobIds,
       },
-      standardFields: ["cmp_id", "job_id", "job_cate", "salary_range"],
+      standardFields: ["cmp_id", "job_id", "job_cate"],
       searchFields: ["job_title", "job_location"], // Allow searching by job title
-      allowedSortFields: ["createdAt", "job_title", "job_location"], // Sort by creation date of the job post
+      allowedSortFields: ["posted_at", "job_title", "job_location"], // Sort by creation date of the job post
+      rangeFields: ["posted_at", "salary"], // Allow filtering by salary range
     });
 
     return res.status(200).json(jobPostsData);

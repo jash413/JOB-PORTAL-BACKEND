@@ -27,8 +27,8 @@ const JobPost = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    salary_range: {
-      type: DataTypes.STRING,
+    salary: {
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     required_skills: {
@@ -38,10 +38,6 @@ const JobPost = sequelize.define(
     cmp_id: {
       type: DataTypes.INTEGER,
       allowNull: false, // Foreign key linking to the employer (Company)
-    },
-    job_status: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
     },
     posted_at: {
       type: DataTypes.DATE,
