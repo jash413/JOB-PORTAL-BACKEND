@@ -23,7 +23,6 @@ const { aggregateData } = require("../utils/aggregator");
  *           schema:
  *             type: object
  *             required:
- *               - candidateId
  *               - job_id
  *             properties:
  *               job_id:
