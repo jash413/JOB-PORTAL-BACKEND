@@ -503,6 +503,12 @@ exports.deleteJobPost = async (req, res) => {
  *               posted_at_to:
  *                 type: string
  *                 description: Filter job posts posted up to a specific date
+ *               salary_from:
+ *                 type: integer
+ *                 description: Filter job posts by minimum salary
+ *               salary_to:
+ *                 type: integer
+ *                 description: Filter job posts by maximum salary
  *     responses:
  *       200:
  *         description: List of job posts
@@ -535,10 +541,6 @@ exports.deleteJobPost = async (req, res) => {
  *                       posted_at:
  *                         type: string
  *                         format: date-time
- *                       salary_from:
- *                         type: integer
- *                       salary_to:
- *                         type: integer
  *                 pagination:
  *                   type: object
  *                   properties:
