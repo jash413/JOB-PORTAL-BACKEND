@@ -7,7 +7,6 @@ const CandidateEducation = require("../models/candidateEdu");
 const CandidateExperience = require("../models/candidateExpDetails");
 const Employer = require("../models/employer");
 const { aggregateData } = require("../utils/aggregator");
-const e = require("cors");
 
 /**
  * @swagger
