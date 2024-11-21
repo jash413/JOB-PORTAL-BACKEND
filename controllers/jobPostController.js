@@ -493,10 +493,6 @@ exports.deleteJobPost = async (req, res) => {
  *                 type: integer
  *                 description: Filter by job cate (e.g., Accountant (Senior))
  *                 example: 1
- *               salary:
- *                 type: integer
- *                 description: Filter by salary range
- *                 example: "10000-20000"
  *               posted_at_from:
  *                 type: string
  *                 description: Filter job posts posted from a specific date
