@@ -493,6 +493,10 @@ exports.deleteJobPost = async (req, res) => {
  *                 type: integer
  *                 description: Filter by job cate (e.g., Accountant (Senior))
  *                 example: 1
+ *               salary_range:
+ *                 type: string
+ *                 description: Filter by salary range
+ *                 example: "10000-20000"
  *     responses:
  *       200:
  *         description: List of job posts
@@ -554,6 +558,8 @@ exports.deleteJobPost = async (req, res) => {
 // Get job posts accessible to a candidate
 exports.getJobPosts = async (req, res) => {
   try {
+    const { body } = req;
+
     // Fetch the candidate using the login_id from the request
     const candidate = await Candidate.findOne({
       where: { login_id: req.user.login_id },
@@ -602,12 +608,13 @@ exports.getJobPosts = async (req, res) => {
         },
       ],
       body: {
+        ...body,
         cmp_id: employerIds,
         job_id: uniqueJobIds,
       },
-      standardFields: ["cmp_id", "job_id"],
-      searchFields: ["job_title"], // Allow searching by job title
-      allowedSortFields: ["createdAt"], // Sort by creation date of the job post
+      standardFields: ["cmp_id", "job_id", "job_cate", "salary_range"],
+      searchFields: ["job_title", "job_location"], // Allow searching by job title
+      allowedSortFields: ["createdAt", "job_title", "job_location"], // Sort by creation date of the job post
     });
 
     return res.status(200).json(jobPostsData);

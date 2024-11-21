@@ -27,9 +27,6 @@ const e = require("cors");
  *               - candidateId
  *               - job_id
  *             properties:
- *               candidateId:
- *                 type: integer
- *                 description: The ID of the candidate applying.
  *               job_id:
  *                 type: integer
  *                 description: The ID of the job post to apply for.
@@ -50,12 +47,23 @@ const e = require("cors");
  *         description: Failed to apply for the job.
  */
 exports.applyForJob = async (req, res) => {
-  const { candidateId, job_id } = req.body;
+  const { job_id } = req.body;
 
   try {
+    // Find the candidate by the login ID from the request
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+      attributes: ["can_code"],
+      raw: true,
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ message: "Candidate not found." });
+    }
+
     // Check if the candidate has already applied for this job
     const existingApplication = await JobApplication.findOne({
-      where: { candidateId, job_id },
+      where: { candidateId: candidate.can_code, job_id },
     });
 
     if (existingApplication) {
@@ -66,7 +74,7 @@ exports.applyForJob = async (req, res) => {
 
     // Create a new job application
     const jobApplication = await JobApplication.create({
-      candidateId,
+      candidateId: candidate.can_code,
       job_id,
     });
     res.status(201).json({
