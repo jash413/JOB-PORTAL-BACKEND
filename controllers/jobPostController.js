@@ -2,8 +2,10 @@ const JobPost = require("../models/jobPost");
 const Employer = require("../models/employer");
 const JobCate = require("../models/jobCate");
 const JobApplication = require("../models/jobApplication");
+const ProfileAccess = require("../models/profileAccess");
 const sequelize = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
+const Candidate = require("../models/candidate");
 
 /**
  * @swagger
@@ -205,7 +207,7 @@ exports.getAllJobPosts = async (req, res) => {
         model: JobCate,
         as: "job_category",
         attributes: ["cate_desc"],
-      }
+      },
     ];
 
     // Fields that support equality filtering
@@ -236,16 +238,23 @@ exports.getAllJobPosts = async (req, res) => {
 
     const jobApplications = await JobApplication.findAll({
       where: { job_id: jobPostIds },
-      attributes: ["job_id", [sequelize.fn("COUNT", "job_id"), "totalApplications"]],
+      attributes: [
+        "job_id",
+        [sequelize.fn("COUNT", "job_id"), "totalApplications"],
+      ],
       group: ["job_id"],
     });
 
     // Map the total number of applications to each job post
     aggregatedData.records = aggregatedData.records.map((jobPost) => {
-      const totalApplications = jobApplications.find((app) => app.job_id === jobPost.job_id);
+      const totalApplications = jobApplications.find(
+        (app) => app.job_id === jobPost.job_id
+      );
       return {
         ...jobPost.toJSON(),
-        totalApplications: totalApplications ? totalApplications.toJSON().totalApplications : 0,
+        totalApplications: totalApplications
+          ? totalApplications.toJSON().totalApplications
+          : 0,
       };
     });
 
@@ -445,10 +454,10 @@ exports.deleteJobPost = async (req, res) => {
  * @swagger
  * /api/v1/job-posts/get-job-posts-accessible-to-candidate:
  *   post:
- *     summary: Retrieve job posts available for a candidate, filtered by access and search criteria
+ *     summary: Retrieve a list of job posts accessible to candidates with filters, sorting, searching, and pagination
  *     tags: [Job Posts]
  *     security:
- *       - bearerAuth: []
+ *      - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -456,38 +465,37 @@ exports.deleteJobPost = async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               filters:
- *                 type: object
- *                 description: Fields to filter by
- *                 properties:
- *                   candidateId:
- *                     type: integer
- *                     description: Filter by candidate ID to see job posts for a specific candidate
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by (e.g., job_title, job_location)
+ *                 example: job_title
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 example: ASC
  *               search:
  *                 type: string
- *                 description: Search string for partial matches in job titles
- *               sort:
- *                 type: object
- *                 description: Fields to sort by
- *                 properties:
- *                   field:
- *                     type: string
- *                     description: The field to sort by (e.g., createdAt)
- *                   order:
- *                     type: string
- *                     enum: [asc, desc]
- *                     description: The sort order (asc for ascending, desc for descending)
- *               pagination:
- *                 type: object
- *                 description: Pagination options
- *                 properties:
- *                   page:
- *                     type: integer
- *                   pageSize:
- *                     type: integer
+ *                 description: Search term for job title or job description
+ *                 example: "developer"
+ *               job_location:
+ *                 type: string
+ *                 description: Location to filter job posts by
+ *                 example: "New York"
+ *               job_cate:
+ *                 type: integer
+ *                 description: Filter by job cate (e.g., Accountant (Senior))
+ *                 example: 1
  *     responses:
  *       200:
- *         description: List of job posts accessible to the candidate
+ *         description: List of job posts
  *         content:
  *           application/json:
  *             schema:
@@ -498,31 +506,31 @@ exports.deleteJobPost = async (req, res) => {
  *                   items:
  *                     type: object
  *                     properties:
- *                       jobId:
+ *                       job_id:
  *                         type: integer
- *                         description: Job post ID
  *                       job_title:
  *                         type: string
- *                         description: Title of the job
- *                       employer:
- *                         type: object
- *                         properties:
- *                           employerId:
- *                             type: integer
- *                             description: Employer ID
- *                           cmp_name:
- *                             type: string
- *                             description: Name of the employer
- *                       createdAt:
+ *                       job_description:
+ *                         type: string
+ *                       job_cate:
+ *                         type: integer
+ *                       job_location:
+ *                         type: string
+ *                       salary_range:
+ *                         type: string
+ *                       required_skills:
+ *                         type: string
+ *                       cmp_id:
+ *                         type: integer
+ *                       posted_at:
  *                         type: string
  *                         format: date-time
- *                         description: Date when the job post was created
  *                 pagination:
  *                   type: object
  *                   properties:
  *                     totalItems:
  *                       type: integer
- *                       description: Total number of job posts
+ *                       description: Total number of items
  *                     currentPage:
  *                       type: integer
  *                       description: Current page number
@@ -534,10 +542,56 @@ exports.deleteJobPost = async (req, res) => {
  *                       description: Number of items per page
  *       500:
  *         description: Error fetching job posts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
  */
 // Get job posts accessible to a candidate
 exports.getJobPosts = async (req, res) => {
   try {
+    // Fetch the candidate using the login_id from the request
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+      attributes: ["can_code"], // Only fetch necessary fields
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found" });
+    }
+
+    // Fetch all ProfileAccess records for the candidate in one query
+    const profileAccessData = await ProfileAccess.findAll({
+      where: { candidateId: candidate.can_code },
+      attributes: ["employerId", "accessibleJobPostsByCandidate"],
+      raw: true, // Returns plain objects
+    });
+
+    if (!profileAccessData.length) {
+      return res.status(404).json({ error: "No profile access data found" });
+    }
+
+    // Extract employer IDs and accessible job IDs
+    const employerIds = [
+      ...new Set(profileAccessData.map((item) => item.employerId)),
+    ];
+    const uniqueJobIds = [
+      ...new Set(
+        profileAccessData.flatMap(
+          (item) => item.accessibleJobPostsByCandidate || []
+        )
+      ),
+    ];
+
+    if (!uniqueJobIds.length) {
+      return res.status(404).json({ error: "No accessible job posts found" });
+    }
+
+    // Aggregate job post data
     const jobPostsData = await aggregateData({
       baseModel: JobPost,
       includeModels: [
@@ -548,22 +602,19 @@ exports.getJobPosts = async (req, res) => {
         },
       ],
       body: {
-        employerId: ProfileAccess.findAll({
-          where: { candidateId: req.body.candidateId },
-          attributes: ["employerId"],
-        }),
-        job_id: ProfileAccess.findAll({
-          where: { candidateId: req.body.candidateId },
-          attributes: ["accessibleJobPostsByCandidate"],
-        }),
+        cmp_id: employerIds,
+        job_id: uniqueJobIds,
       },
-      standardFields: [],
+      standardFields: ["cmp_id", "job_id"],
       searchFields: ["job_title"], // Allow searching by job title
       allowedSortFields: ["createdAt"], // Sort by creation date of the job post
     });
-    res.status(200).json(jobPostsData);
+
+    return res.status(200).json(jobPostsData);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error fetching job posts", error });
+    console.error("Error fetching job posts:", error.message, error.stack);
+    return res
+      .status(500)
+      .json({ message: "Error fetching job posts", error: error.message });
   }
 };
