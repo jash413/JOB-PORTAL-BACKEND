@@ -38,7 +38,7 @@ module.exports = (allowedRoles = []) => {
       // If role matches, proceed to the next middleware or route handler
       next();
     } catch (err) {
-      res.status(400).json({ error: "Invalid token" });
+      res.status(401).json({ error: "Invalid token" });
     }
   };
 };
