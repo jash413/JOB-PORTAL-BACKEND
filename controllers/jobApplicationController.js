@@ -87,7 +87,7 @@ exports.applyForJob = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/job-applications/candidate:
+ * /api/v1/job-applications/candidate-applications:
  *   post:
  *     summary: Get all job applications by a candidate.
  *     tags: 

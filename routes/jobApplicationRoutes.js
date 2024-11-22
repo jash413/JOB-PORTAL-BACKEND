@@ -8,8 +8,8 @@ const authMiddleware = require("../middlewares/authMiddleware");
 router.post("/apply", authMiddleware([]), JobApplicationController.applyForJob);
 
 // Route to get all applications made by a specific candidate
-router.get(
-  "/candidate/:candidateId",
+router.post(
+  "/candidate-applications",
   authMiddleware([]),
   JobApplicationController.getCandidateApplications
 );
