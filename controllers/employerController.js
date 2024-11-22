@@ -1052,17 +1052,16 @@ exports.getEmployerDashboardData = async (req, res) => {
     const employer = await Employer.findOne({
       where: { login_id: req.user.login_id },
       attributes: ["cmp_code"], // Only fetch necessary fields
+      raw: true,
     });
 
     if (!employer) {
       return res.status(404).json({ error: "Employer not found" });
     }
 
-    const employerId = employer.cmp_code;
-
     // Fetch job posts for the employer
     const jobPosts = await JobPost.findAll({
-      where: { cmp_id: employerId },
+      where: { cmp_id: employer.cmp_code },
       attributes: ["job_id"], // Only fetch necessary fields
     });
 
