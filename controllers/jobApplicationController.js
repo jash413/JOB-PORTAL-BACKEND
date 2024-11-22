@@ -149,7 +149,7 @@ exports.getCandidateApplications = async (req, res) => {
       {
         model: JobPost,
         as: "job_post",
-        attributes: ["job_title", "job_location", "job_salary"],
+        attributes: ["job_title", "job_location", "salary"],
       },
     ];
 
