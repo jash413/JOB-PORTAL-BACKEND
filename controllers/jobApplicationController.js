@@ -87,19 +87,40 @@ exports.applyForJob = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/job-applications/candidate/{candidateId}:
- *   get:
+ * /api/v1/job-applications/candidate:
+ *   post:
  *     summary: Get all job applications by a candidate.
- *     tags: [Job Applications]
+ *     tags: 
+ *       - Job Applications
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: candidateId
- *         required: true
- *         schema:
- *           type: integer
- *         description: The ID of the candidate.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by
+ *                 example: appliedAt
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 example: ASC
+ *               status:
+ *                 type: string
+ *                 description: Job application status (accepted, rejected, or pending)
+ *                 example: pending
  *     responses:
  *       200:
  *         description: A list of job applications by the candidate.
@@ -114,30 +135,43 @@ exports.getCandidateApplications = async (req, res) => {
   try {
     const { body } = req;
 
+    const candidate = await Candidate.findOne({
+      where: { login_id: req.user.login_id },
+      attributes: ["can_code"],
+      raw: true,
+    });
+
+    if (!candidate) {
+      return res.status(404).json({ error: "Candidate not found." });
+    }
+
     const includeModels = [
       {
         model: JobPost,
-        as: "jobPost",
+        as: "job_post",
         attributes: ["job_title", "job_location", "job_salary"],
       },
     ];
 
     // Standard Fields
-    const standardFields = ["jobPostId"];
+    const standardFields = ["job_id","candidateId", "status"];
 
     // Search Fields
     const searchFields = [];
 
     // Range Fields
-    const rangeFields = ["createdAt"];
+    const rangeFields = ["appliedAt"];
 
     // Allowed Sort Fields
-    const allowedSortFields = ["createdAt"];
+    const allowedSortFields = ["appliedAt"];
 
     const aggregatedData = await aggregateData({
       baseModel: JobApplication,
       includeModels,
-      body,
+      body:{
+        ...body,
+        candidateId: candidate.can_code,
+      },
       standardFields,
       rangeFields,
       searchFields,
