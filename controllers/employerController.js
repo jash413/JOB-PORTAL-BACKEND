@@ -5,6 +5,8 @@ const ProfileAccess = require("../models/profileAccess");
 const JobCate = require("../models/jobCate");
 const CandidateEducation = require("../models/candidateEdu");
 const CandidateExperience = require("../models/candidateExpDetails");
+const JobPost = require("../models/jobPost");
+const JobApplication = require("../models/jobApplication");
 const { Op } = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -850,7 +852,6 @@ exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
   }
 };
 
-
 /**
  * @swagger
  * /api/v1/employers/get-access-requests:
@@ -1003,5 +1004,96 @@ exports.getAccessRequests = async (req, res) => {
   } catch (error) {
     console.error("Error fetching access requests:", error);
     res.status(500).json({ message: "Error fetching access requests", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/employers/dashboard-data:
+ *   get:
+ *     summary: Get the dashboard data for the employer
+ *     tags: [Employers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Employer dashboard data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalJobs:
+ *                   type: integer
+ *                   description: Total number of job posts created by the employer
+ *                 totalApplicants:
+ *                   type: integer
+ *                   description: Total number of applicants for the employer's job posts
+ *                 appliedRate:
+ *                   type: number
+ *                   description: Rate of applications per job post
+ *       500:
+ *         description: Error fetching dashboard data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message
+ *                 error:
+ *                   type: object
+ *                   description: Error details
+ */
+exports.getEmployerDashboardData = async (req, res) => {
+  try {
+    // Fetch employer information
+    const employer = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+      attributes: ["cmp_code"], // Only fetch necessary fields
+    });
+
+    if (!employer) {
+      return res.status(404).json({ error: "Employer not found" });
+    }
+
+    const employerId = employer.cmp_code;
+
+    // Fetch job posts for the employer
+    const jobPosts = await JobPost.findAll({
+      where: { cmp_id: employerId },
+      attributes: ["job_id"], // Only fetch necessary fields
+    });
+
+    const totalJobs = jobPosts.length;
+
+    if (totalJobs === 0) {
+      return res.status(200).json({
+        totalJobs: 0,
+        totalApplicants: 0,
+        appliedRate: 0,
+      });
+    }
+
+    // Extract job IDs
+    const jobPostIds = jobPosts.map((jobPost) => jobPost.job_id);
+
+    // Count applicants for all jobs in a single query
+    const totalApplicants = await JobApplication.count({
+      where: { job_id: { [Op.in]: jobPostIds } },
+    });
+
+    // Calculate applied rate
+    const appliedRate = totalJobs > 0 ? totalApplicants / totalJobs : 0;
+
+    res.status(200).json({
+      totalJobs,
+      totalApplicants,
+      appliedRate,
+    });
+  } catch (error) {
+    console.error("Error fetching employer dashboard data:", error);
+    res.status(500).json({ message: "Error fetching dashboard data", error });
   }
 };

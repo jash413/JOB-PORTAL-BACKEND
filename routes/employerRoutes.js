@@ -11,6 +11,13 @@ router.post(
   employerController.getAllEmployers
 );
 
+// Get dashboard data for the employer
+router.get(
+  "/dashboard-data",
+  authMiddleware(["EMP"]),
+  employerController.getEmployerDashboardData
+);
+
 // Get an employer by ID
 router.get(
   "/:id",
