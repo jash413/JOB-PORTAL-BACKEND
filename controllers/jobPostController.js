@@ -334,7 +334,19 @@ exports.getJobPostById = async (req, res) => {
         {
           model: Employer,
           as: "employer",
-          attributes: ["cmp_name", "cmp_email", "cmp_mobn"],
+          attributes: [
+            "cmp_name",
+            "cmp_email",
+            "cmp_mobn",
+            "cmp_webs",
+            "emp_loca",
+            "emp_addr",
+          ],
+        },
+        {
+          model: JobCate,
+          as: "job_category",
+          attributes: ["cate_desc"],
         },
       ],
     });
