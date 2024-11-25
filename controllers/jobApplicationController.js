@@ -90,7 +90,7 @@ exports.applyForJob = async (req, res) => {
  * /api/v1/job-applications/candidate-applications:
  *   post:
  *     summary: Get all job applications by a candidate.
- *     tags: 
+ *     tags:
  *       - Job Applications
  *     security:
  *       - bearerAuth: []
@@ -149,12 +149,24 @@ exports.getCandidateApplications = async (req, res) => {
       {
         model: JobPost,
         as: "job_post",
-        attributes: ["job_title", "job_location", "salary"],
+        attributes: ["job_title", "job_location", "salary", "job_description"],
+        include: [
+          {
+            model: Employer,
+            as: "employer",
+            attributes: ["cmp_name"],
+          },
+          {
+            model: JobCate,
+            as: "job_category",
+            attributes: ["cate_desc"],
+          },
+        ],
       },
     ];
 
     // Standard Fields
-    const standardFields = ["job_id","candidateId", "status"];
+    const standardFields = ["job_id", "candidateId", "status"];
 
     // Search Fields
     const searchFields = [];
@@ -168,7 +180,7 @@ exports.getCandidateApplications = async (req, res) => {
     const aggregatedData = await aggregateData({
       baseModel: JobApplication,
       includeModels,
-      body:{
+      body: {
         ...body,
         candidateId: candidate.can_code,
       },
