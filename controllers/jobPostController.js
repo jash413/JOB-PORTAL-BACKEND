@@ -370,6 +370,10 @@ exports.getJobPostById = async (req, res) => {
  *                 type: integer
  *               required_skills:
  *                 type: string
+ *               status:
+ *                 type: string
+ *                 enum: ['active', 'inactive']
+ *                 default: 'active'
  *     responses:
  *       200:
  *         description: Job post updated successfully
@@ -389,6 +393,7 @@ exports.updateJobPost = async (req, res) => {
       job_location,
       salary,
       required_skills,
+      status,
     } = req.body;
 
     const jobPost = await JobPost.findByPk(id);
@@ -403,6 +408,7 @@ exports.updateJobPost = async (req, res) => {
     jobPost.job_location = job_location || jobPost.job_location;
     jobPost.salary = salary || jobPost.salary;
     jobPost.required_skills = required_skills || jobPost.required_skills;
+    jobPost.status = status || jobPost.status;
 
     await jobPost.save();
     res.status(200).json({ message: "Job post updated successfully", jobPost });
@@ -619,6 +625,7 @@ exports.getJobPosts = async (req, res) => {
         ...body,
         cmp_id: employerIds,
         job_id: uniqueJobIds,
+        status: "active",
       },
       standardFields: ["cmp_id", "job_id", "job_cate"],
       searchFields: ["job_title", "job_location"], // Allow searching by job title

@@ -43,6 +43,10 @@ const JobPost = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    status:{
+      type: DataTypes.ENUM('active', 'inactive'),
+      defaultValue: 'active'
+    }
   },
   {
     timestamps: true,
