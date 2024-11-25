@@ -16,7 +16,7 @@ router.post(
 );
 router.get(
   "/:id",
-  authMiddleware(["EMP"]),
+  authMiddleware(["EMP","CND"]),
   jobPostController.getJobPostById
 );
 router.put(
