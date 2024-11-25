@@ -196,6 +196,16 @@ exports.getAllJobPosts = async (req, res) => {
   try {
     const { body } = req;
 
+    const { cmp_code } = await Employer.findOne({
+      where: { login_id: req.user.login_id },
+      attributes: ["cmp_code"],
+      raw: true,
+    });
+
+    if (!cmp_code) {
+      return res.status(404).json({ error: "Company not found" });
+    }
+
     // Models to include in the aggregation
     const includeModels = [
       {
@@ -226,7 +236,10 @@ exports.getAllJobPosts = async (req, res) => {
     const aggregatedData = await aggregateData({
       baseModel: JobPost,
       includeModels,
-      body,
+      body: {
+        ...body,
+        cmp_id: cmp_code,
+      },
       standardFields,
       rangeFields,
       searchFields,

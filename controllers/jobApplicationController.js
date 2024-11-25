@@ -315,16 +315,20 @@ exports.getJobApplications = async (req, res) => {
  *                 description: Sort order (ASC or DESC)
  *                 example: ASC
  *               candidateId:
- *                type: string
- *                description: Candidate id for filtering candidates
- *                example: 1
+ *                 type: string
+ *                 description: Candidate id for filtering candidates
+ *                 example: 1
  *               job_cate:
- *                type: string
- *                description: Job category code for filtering job posts by category
- *                example: 1
+ *                 type: string
+ *                 description: Job category code for filtering job posts by category
+ *                 example: 1
+ *               job_id:
+ *                 type: string
+ *                 description: Job id for filtering job posts
+ *                 example: 1
  *               status:
- *                type: string
- *                description: Job application status (accepted, rejected or pending)
+ *                 type: string
+ *                 description: Job application status (accepted, rejected or pending)
  *     responses:
  *       200:
  *         description: A list of job applications for the specified job post.
@@ -339,7 +343,7 @@ exports.getEmployerApplications = async (req, res) => {
   const { body } = req;
 
   try {
-    // Find the employer by the login ID from the request
+    // Fetch employer and validate existence
     const employer = await Employer.findOne({
       where: { login_id: req.user.login_id },
       attributes: ["cmp_code"],
@@ -350,29 +354,26 @@ exports.getEmployerApplications = async (req, res) => {
       return res.status(404).json({ message: "Employer not found." });
     }
 
-    // Build filters more efficiently
+    // Build filters with a concise structure
     const filters = {
       cmp_id: employer.cmp_code,
       ...(body.job_cate && { job_cate: body.job_cate }),
     };
 
-    // Fetch job IDs efficiently with selective attributes
-    const jobPosts = await JobPost.findAll({
+    // Retrieve job IDs using a more efficient query
+    const jobIds = await JobPost.findAll({
       where: filters,
       attributes: ["job_id"],
       raw: true,
-    });
+    }).then((jobs) => jobs.map((job) => job.job_id));
 
-    const jobIds = jobPosts.map((job) => job.job_id);
-
-    // If there are no job postings found for the given criteria, return an empty response
     if (jobIds.length === 0) {
       return res
         .status(200)
         .json({ message: "No job applications found.", data: [] });
     }
 
-    // Aggregating data for job applications based on the job IDs and other filters
+    // Efficient aggregation with included models
     const aggregatedData = await aggregateData({
       baseModel: JobApplication,
       includeModels: [
@@ -428,15 +429,14 @@ exports.getEmployerApplications = async (req, res) => {
       ],
       body: {
         ...body,
-        job_id: jobIds,
+        job_id: body.job_id || jobIds,
       },
       standardFields: ["candidateId", "job_id", "status"],
       rangeFields: ["createdAt"],
-      searchFields: [], // Specify search fields if necessary
       allowedSortFields: ["createdAt"],
     });
 
-    // Return the aggregated job application data
+    // Return the result in a concise response
     return res.status(200).json(aggregatedData);
   } catch (error) {
     console.error("Error fetching job applications:", error);
