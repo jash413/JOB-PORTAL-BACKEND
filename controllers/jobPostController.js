@@ -652,7 +652,7 @@ exports.getJobPosts = async (req, res) => {
         job_id: uniqueJobIds,
         status: "active",
       },
-      standardFields: ["cmp_id", "job_id", "job_cate"],
+      standardFields: ["cmp_id", "job_id", "job_cate","status"],
       searchFields: ["job_title", "job_location"], // Allow searching by job title
       allowedSortFields: ["posted_at", "job_title", "job_location"], // Sort by creation date of the job post
       rangeFields: ["posted_at", "salary"], // Allow filtering by salary range
