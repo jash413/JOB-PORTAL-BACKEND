@@ -388,6 +388,7 @@ exports.getEmployerApplications = async (req, res) => {
             "can_skill",
             "can_email",
             "can_mobn",
+            "can_resume"
           ],
           include: [
             {
