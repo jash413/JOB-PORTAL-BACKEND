@@ -221,7 +221,7 @@ exports.getAllJobPosts = async (req, res) => {
     ];
 
     // Fields that support equality filtering
-    const standardFields = ["job_title", "job_location", "job_cate"];
+    const standardFields = ["job_title", "job_location", "job_cate","cmp_id"];
 
     // Fields that support range filtering (if applicable)
     const rangeFields = [];
