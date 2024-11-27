@@ -33,12 +33,12 @@ router.delete(
 ); // Delete a candidate
 router.get(
   "/:id/profile-image",
-  authMiddleware(["AMN", "CND"]),
+  authMiddleware(["AMN", "CND", "EMP"]),
   candidateController.downloadProfileImage
 )
 router.get(
   "/:id/resume",
-  authMiddleware(["AMN", "CND"]),
+  authMiddleware(["AMN", "CND", "EMP"]),
   candidateController.downloadResume
 )
 
