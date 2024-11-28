@@ -167,6 +167,20 @@ exports.approveAccessRequest = async (req, res) => {
     request.reviewedAt = new Date();
     await request.save();
 
+    // If profile access already exists, do nothing
+    const existingAccess = await ProfileAccess.findOne({
+      where: {
+        employerId: request.employerId,
+        candidateId: request.candidateId,
+      },
+    });
+
+    if (existingAccess) {
+      return res
+        .status(200)
+        .json({ message: "Access request approved and access granted." });
+    }
+
     await ProfileAccess.create({
       employerId: request.employerId,
       candidateId: request.candidateId,
@@ -217,6 +231,23 @@ exports.denyAccessRequest = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Invalid or already processed request" });
+    }
+
+    // If profile access already exists, revoke it
+    const existingAccess = await ProfileAccess.findOne({
+      where: {
+        employerId: request.employerId,
+        candidateId: request.candidateId,
+      },
+    });
+
+    if (existingAccess) {
+      await ProfileAccess.destroy({
+        where: {
+          employerId: request.employerId,
+          candidateId: request.candidateId,
+        },
+      });
     }
 
     request.status = "rejected";
