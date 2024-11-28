@@ -105,7 +105,7 @@ exports.getRequests = async (req, res) => {
       },
     ];
     const standardFields = ["status"];
-    const searchFields = ["Employer.cmp_name", "Candidate.can_name"];
+    const searchFields = [];
     const allowedSortFields = ["requestedAt"];
 
     const aggregatedData = await aggregateData({
@@ -336,7 +336,7 @@ exports.grantProfileAccess = async (req, res) => {
 /**
  * @swagger
  * /api/v1/admin/revoke-profile-access:
- *   delete:
+ *   post:
  *     summary: Revoke access to a candidate's profile for a specific employer
  *     tags:
  *       - Admin
@@ -419,6 +419,7 @@ exports.revokeProfileAccess = async (req, res) => {
 
     res.status(200).json({ message: "Profile access revoked" });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Error revoking profile access", error });
   }
 };

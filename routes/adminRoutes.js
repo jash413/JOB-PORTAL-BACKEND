@@ -19,7 +19,7 @@ router.put("/access-requests/:id/deny", adminController.denyAccessRequest);
 router.post("/grant-profile-access", adminController.grantProfileAccess);
 
 // Revoke profile access from a employer
-router.delete("/revoke-profile-access", adminController.revokeProfileAccess);
+router.post("/revoke-profile-access", adminController.revokeProfileAccess);
 
 // Add job post access to a candidate
 router.post("/job-post-access", adminController.addJobPostAccess);
