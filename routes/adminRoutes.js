@@ -1,21 +1,48 @@
 // routes/adminRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const adminController = require('../controllers/adminController');
+const adminController = require("../controllers/adminController");
 
 // Get all pending access requests
-router.post('/access-requests', adminController.getRequests);
+router.post("/access-requests", adminController.getRequests);
 
 // Approve an access request
-router.put('/access-requests/:id/approve', adminController.approveAccessRequest);
+router.put(
+  "/access-requests/:id/approve",
+  adminController.approveAccessRequest
+);
 
 // Deny an access request
-router.put('/access-requests/:id/deny', adminController.denyAccessRequest);
+router.put("/access-requests/:id/deny", adminController.denyAccessRequest);
+
+// Grant profile access to a employer
+router.post("/grant-profile-access", adminController.grantProfileAccess);
+
+// Revoke profile access from a employer
+router.delete("/revoke-profile-access", adminController.revokeProfileAccess);
 
 // Add job post access to a candidate
-router.post('/job-post-access', adminController.addJobPostAccess);
+router.post("/job-post-access", adminController.addJobPostAccess);
 
 // Remove job post access from a candidate
-router.delete('/job-post-access', adminController.removeJobPostAccess);
+router.delete("/job-post-access", adminController.removeJobPostAccess);
+
+// Get all profile access
+router.get("/profile-access", adminController.getProfileAccess);
+
+// Get all candidate with profile access to a employer
+router.post(
+  "/candidates-with-profile-access",
+  adminController.getCandidatesWithProfileAccess
+);
+
+// Get all candidates
+router.post("/candidates", adminController.getCandidates);
+
+// Get all employers
+router.post("/employers", adminController.getEmployers);
+
+// Get all job posts
+router.get("/job-posts", adminController.getJobPosts);
 
 module.exports = router;
