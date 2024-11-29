@@ -927,6 +927,11 @@ exports.getCandidates = async (req, res) => {
             "user_approval_status",
           ],
         },
+        {
+          model: JobCate,
+          as: "job_category",
+          attributes: ["cate_desc"],
+        }
       ],
       body: req.body,
       standardFields: ["createdAt"],
