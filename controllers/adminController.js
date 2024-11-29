@@ -3,6 +3,7 @@ const Employer = require("../models/employer");
 const Candidate = require("../models/candidate");
 const AccessRequest = require("../models/accessRequest");
 const ProfileAccess = require("../models/profileAccess");
+const Login = require("../models/loginMast");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -902,7 +903,18 @@ exports.getCandidates = async (req, res) => {
   try {
     const candidates = await aggregateData({
       baseModel: Candidate,
-      includeModels: [],
+      includeModels: [
+        {
+          model: Login,
+          as: "Login",
+          attributes: [
+            "login_name",
+            "login_email",
+            "login_mobile",
+            "user_approval_status",
+          ],
+        },
+      ],
       body: req.body,
       standardFields: ["createdAt"],
       searchFields: ["can_name", "can_code"],
@@ -998,7 +1010,18 @@ exports.getEmployers = async (req, res) => {
   try {
     const employers = await aggregateData({
       baseModel: Employer,
-      includeModels: [],
+      includeModels: [
+        {
+          model: Login,
+          as: "Login",
+          attributes: [
+            "login_name",
+            "login_email",
+            "login_mobile",
+            "user_approval_status",
+          ],
+        },
+      ],
       body: req.body,
       standardFields: ["createdAt"],
       searchFields: ["cmp_name", "cmp_code"],
@@ -1103,5 +1126,72 @@ exports.getJobPosts = async (req, res) => {
     res.status(200).json(jobPosts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching job posts", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/admin/users/{id}/approval-status:
+ *   put:
+ *     summary: Update the approval status of a user
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_approval_status:
+ *                 type: integer
+ *                 description: New approval status of the user
+ *                 example: 1
+ *                 enum: [0, 1]
+ *     responses:
+ *       200:
+ *         description: User approval status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User approval status updated"
+ *       500:
+ *         description: Error updating user approval status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *                   example: "Failed to update approval status."
+ */
+exports.updateUserApprovalStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user_approval_status } = req.body;
+    const login = await Login.findByPk(id);
+    if (!login) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    login.user_approval_status = user_approval_status;
+    await login.save();
+    res.status(200).json({ message: "User approval status updated" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating user approval status", error });
   }
 };

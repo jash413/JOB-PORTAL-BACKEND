@@ -15,6 +15,12 @@ router.put(
 // Deny an access request
 router.put("/access-requests/:id/deny", adminController.denyAccessRequest);
 
+// Update user approval status
+router.put(
+  "/users/:id/approval-status",
+  adminController.updateUserApprovalStatus
+);
+
 // Grant profile access to a employer
 router.post("/grant-profile-access", adminController.grantProfileAccess);
 

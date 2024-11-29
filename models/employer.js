@@ -1,5 +1,6 @@
 // models/employer.js
 const { DataTypes } = require("sequelize");
+const Login = require("./loginMast");
 const sequelize = require("../config/db"); // Assuming Sequelize is initialized in config/db.js
 
 const Employer = sequelize.define(
@@ -57,5 +58,11 @@ const Employer = sequelize.define(
     timestamps: true,
   }
 );
+
+Employer.belongsTo(Login, {
+  foreignKey: "login_id",
+  targetKey: "login_id",
+  as: "Login",
+});
 
 module.exports = Employer;

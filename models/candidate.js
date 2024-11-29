@@ -3,6 +3,7 @@ const { DataTypes } = require("sequelize");
 const JobCate = require("./jobCate"); // Import JobCate model
 const CandidateExpDetails = require("./candidateExpDetails"); // Import CandidateExpDetails model
 const CandidateEduDetails = require("./candidateEdu"); // Import CandidateEduDetails model
+const Login = require("./loginMast"); // Import Login model
 const sequelize = require("../config/db"); // Sequelize initialized in config/db.js
 
 const Candidate = sequelize.define(
@@ -91,6 +92,12 @@ Candidate.hasMany(CandidateEduDetails, {
   foreignKey: "can_code",
   as: "candidate_edu",
   sourceKey: "can_code",
+});
+
+Candidate.belongsTo(Login, {
+  foreignKey: "login_id",
+  targetKey: "login_id",
+  as: "Login",
 });
 
 module.exports = Candidate;
