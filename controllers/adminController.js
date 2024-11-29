@@ -1134,9 +1134,26 @@ exports.getJobPosts = async (req, res) => {
   try {
     const jobPosts = await aggregateData({
       baseModel: JobPost,
-      includeModels: [],
+      includeModels: [
+        {
+          model: Employer,
+          as: "employer",
+          attributes: [
+            "cmp_name",
+            "cmp_email",
+            "cmp_mobn",
+            "emp_loca",
+            "emp_addr",
+          ],
+        },
+        {
+          model: JobCate,
+          as: "job_category",
+          attributes: ["cate_desc"],
+        },
+      ],
       body: req.body,
-      standardFields: ["createdAt","cmp_id"],
+      standardFields: ["createdAt", "cmp_id"],
       searchFields: ["job_title", "job_desc"],
       allowedSortFields: ["createdAt"],
     });
