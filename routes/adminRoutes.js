@@ -49,7 +49,7 @@ router.post("/candidates", adminController.getCandidates);
 router.post("/employers", adminController.getEmployers);
 
 // Get all job posts
-router.get("/job-posts", adminController.getJobPosts);
+router.post("/job-posts", adminController.getJobPosts);
 
 // Get employer by id
 router.get("/employers/:id", adminController.getEmployerById);

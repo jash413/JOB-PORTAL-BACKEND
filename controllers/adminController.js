@@ -5,6 +5,7 @@ const AccessRequest = require("../models/accessRequest");
 const ProfileAccess = require("../models/profileAccess");
 const JobPost = require("../models/jobPost");
 const Login = require("../models/loginMast");
+const JobCate = require("../models/jobCate");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -49,6 +50,10 @@ const { aggregateData } = require("../utils/aggregator");
  *                 type: string
  *                 description: Search term for company name or location(city)
  *                 example: webwise solution
+ *               employerId:
+ *                 type: integer
+ *                 description: Employer ID to filter access requests
+ *                 example: 123
  *     responses:
  *       200:
  *         description: List of access request with pagination and filter details
@@ -103,10 +108,17 @@ exports.getRequests = async (req, res) => {
       {
         model: Candidate,
         as: "Candidate",
-        attributes: ["can_name"],
+        attributes: ["can_name", "can_code"],
+        include: [
+          {
+            model: JobCate,
+            as: "job_category",
+            attributes: ["cate_desc"],
+          },
+        ],
       },
     ];
-    const standardFields = ["status"];
+    const standardFields = ["status", "employerId"];
     const searchFields = [];
     const allowedSortFields = ["requestedAt"];
 
@@ -1070,6 +1082,10 @@ exports.getEmployers = async (req, res) => {
  *                 type: string
  *                 description: Search term for candidate name or code
  *                 example: John Doe
+ *               cmp_id:
+ *                 type: integer
+ *                 description: Employer ID to filter job posts
+ *                 example: 123
  *     responses:
  *       200:
  *         description: List of job posts with pagination and filter details
@@ -1120,7 +1136,7 @@ exports.getJobPosts = async (req, res) => {
       baseModel: JobPost,
       includeModels: [],
       body: req.body,
-      standardFields: ["createdAt"],
+      standardFields: ["createdAt","cmp_id"],
       searchFields: ["job_title", "job_desc"],
       allowedSortFields: ["createdAt"],
     });
