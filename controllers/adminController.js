@@ -3,6 +3,7 @@ const Employer = require("../models/employer");
 const Candidate = require("../models/candidate");
 const AccessRequest = require("../models/accessRequest");
 const ProfileAccess = require("../models/profileAccess");
+const JobPost = require("../models/jobPost");
 const Login = require("../models/loginMast");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -1193,5 +1194,106 @@ exports.updateUserApprovalStatus = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error updating user approval status", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/admin/employers/{id}:
+ *   get:
+ *     summary: Get an employer by ID
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Employer ID
+ *     responses:
+ *       200:
+ *         description: Employer details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 employer:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: Employer ID
+ *                     cmp_name:
+ *                       type: string
+ *                       description: Company name
+ *                     cmp_code:
+ *                       type: string
+ *                       description: Company code
+ *                     cmp_email:
+ *                       type: string
+ *                       description: Company email
+ *                     cmp_mobile:
+ *                       type: string
+ *                       description: Company mobile
+ *                     createdAt:
+ *                       type: string
+ *                       description: Date of creation
+ *                       format: date-time
+ *                     totalJobPosts:
+ *                       type: integer
+ *                       description: Total number of job posts
+ *                     totalProfileAccess:
+ *                       type: integer
+ *                       description: Total number of profile accesses
+ *                     totalAccessRequests:
+ *                       type: integer
+ *                       description: Total number of access requests
+ *       404:
+ *         description: Employer not found
+ *       500:
+ *         description: Error fetching employer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *                   example: "Error fetching employer details."
+ */
+exports.getEmployerById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Use Promise.all for concurrent database queries
+    const [employer, totalJobPosts, totalProfileAccess, totalAccessRequests] =
+      await Promise.all([
+        Employer.findByPk(id),
+        JobPost.count({ where: { cmp_id: id } }),
+        ProfileAccess.count({ where: { employerId: id } }),
+        AccessRequest.count({ where: { employerId: id } }),
+      ]);
+
+    // Early return if employer not found
+    if (!employer) {
+      return res.status(404).json({ message: "Employer not found" });
+    }
+
+    // Send response with all data
+    res.status(200).json({
+      employer,
+      totalJobPosts,
+      totalProfileAccess,
+      totalAccessRequests,
+    });
+  } catch (error) {
+    // Use error logging middleware in production
+    console.error("Error in getEmployerById:", error);
+
+    // Send a generic error message to prevent info leakage
+    res.status(500).json({ message: "Internal server error" });
   }
 };

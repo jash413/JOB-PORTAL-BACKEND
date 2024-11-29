@@ -51,4 +51,7 @@ router.post("/employers", adminController.getEmployers);
 // Get all job posts
 router.get("/job-posts", adminController.getJobPosts);
 
+// Get employer by id
+router.get("/employers/:id", adminController.getEmployerById);
+
 module.exports = router;
