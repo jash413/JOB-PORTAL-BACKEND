@@ -38,8 +38,9 @@ const createAllowedFilters = (fields = [], rangeFields = []) => {
 const buildWhereClause = (body, allowedFilters, searchFields = []) => {
   const where = Object.entries(allowedFilters).reduce(
     (acc, [filterKey, { field, operator }]) => {
-      if (body[filterKey] === undefined) return acc;
-
+      if (body[filterKey] === undefined && operator !== Op.between) {
+        return acc;
+      }
       // Handle the case where the filter field is an array (like job_id IN (1,2,3))
       if (Array.isArray(body[filterKey])) {
         acc[field] = { [Op.in]: body[filterKey] };
