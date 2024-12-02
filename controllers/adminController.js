@@ -6,6 +6,9 @@ const ProfileAccess = require("../models/profileAccess");
 const JobPost = require("../models/jobPost");
 const Login = require("../models/loginMast");
 const JobCate = require("../models/jobCate");
+const CandidateEducation = require("../models/candidateEdu");
+const CandidateExperience = require("../models/candidateExpDetails");
+const { Op } = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -849,6 +852,10 @@ exports.getCandidatesWithProfileAccess = async (req, res) => {
  *                 type: string
  *                 description: Search term for candidate name or code
  *                 example: John Doe
+ *               can_code:
+ *                 type: integer
+ *                 description: Candidate code to filter candidates
+ *                 example: 123
  *     responses:
  *       200:
  *         description: List of candidates with pagination and filter details
@@ -913,10 +920,34 @@ exports.getCandidates = async (req, res) => {
           as: "job_category",
           attributes: ["cate_desc"],
         },
+        {
+          model: CandidateEducation,
+          as: "candidate_edu",
+          attributes: [
+            "can_edu",
+            "can_scho",
+            "can_pasy",
+            "can_perc",
+            "can_stre",
+            "can_cgpa",
+          ],
+        },
+        {
+          model: CandidateExperience,
+          as: "candidate_exp",
+          attributes: [
+            "emp_name",
+            "exp_type",
+            "exp_desg",
+            "cur_ctc",
+            "job_stdt",
+            "job_endt",
+          ],
+        },
       ],
       body: req.body,
-      standardFields: ["createdAt"],
-      searchFields: ["can_name", "can_code"],
+      standardFields: ["createdAt", "can_code"],
+      searchFields: ["can_name"],
       allowedSortFields: ["createdAt"],
     });
     res.status(200).json(candidates);
@@ -1177,7 +1208,9 @@ exports.getJobPosts = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching job posts:", error);
-    res.status(500).json({ message: "Error fetching job posts", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching job posts", error: error.message });
   }
 };
 
@@ -1346,5 +1379,138 @@ exports.getEmployerById = async (req, res) => {
 
     // Send a generic error message to prevent info leakage
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/admin/get-not-accessible-candidates:
+ *   post:
+ *     summary: Retrieve a list of non accessible candidates with dynamic filters, sorting, searching, and pagination
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by
+ *                 example: cmp_name
+ *                 enum: [cmp_name, emp_loca]
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 example: ASC
+ *                 enum: [ASC, DESC]
+ *               search:
+ *                 type: string
+ *                 description: Search term for company name or location(city)
+ *                 example: webwise solution
+ *               employerId:
+ *                 type: integer
+ *                 description: Employer ID to filter candidates by profile access
+ *     responses:
+ *       200:
+ *         description: List of employers with pagination and filter details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of items
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     nextPage:
+ *                       type: integer
+ *                       description: Next page number
+ *                     prevPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       description: Has next page
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       description: Has previous page
+ *       500:
+ *         description: Error fetching employers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
+  try {
+    const { body } = req;
+
+    // Fetch all candidate IDs from access requests created by the employer
+    const accessRequests = await AccessRequest.findAll({
+      where: { employerId: body.employerId },
+      attributes: ["candidateId"],
+      raw: true,
+    });
+
+    const accessRequestIds = new Set(accessRequests.map((a) => a.candidateId));
+
+    // Fetch candidates not in the list of access requests
+    const candidates = await Candidate.findAll({
+      where: {
+        can_code: {
+          [Op.notIn]: [...accessRequestIds],
+        },
+      },
+      attributes: ["can_code"],
+      raw: true,
+    });
+
+    const candidateCodes = candidates.map((candidate) => candidate.can_code);
+
+    // Aggregate candidate data
+    const aggregatedData = await aggregateData({
+      baseModel: Candidate,
+      includeModels: [], // No associated models to include
+      body: {
+        ...body,
+        can_code: candidateCodes,
+      },
+      standardFields: ["can_name", "can_email", "can_code"],
+      rangeFields: [], // No range filters required
+      searchFields: ["can_name", "can_email"],
+      allowedSortFields: ["createdAt"],
+    });
+
+    return res.status(200).json(aggregatedData);
+  } catch (error) {
+    console.error(
+      "Error fetching candidates not accessible to employer:",
+      error
+    );
+    return res
+      .status(500)
+      .json({ message: "Error fetching candidates", error });
   }
 };

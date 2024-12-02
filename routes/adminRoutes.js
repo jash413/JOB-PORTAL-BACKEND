@@ -45,6 +45,12 @@ router.post("/candidates", adminController.getCandidates);
 // Get all employers
 router.post("/employers", adminController.getEmployers);
 
+// Get not accessible candidates
+router.post(
+  "/get-not-accessible-candidates",
+  adminController.getCandidatesNotAccessibleToEmployer
+);
+
 // Get all job posts
 router.post("/job-posts", adminController.getJobPosts);
 
