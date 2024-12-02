@@ -442,8 +442,8 @@ exports.revokeProfileAccess = async (req, res) => {
  * @swagger
  * /api/v1/admin/job-post-access:
  *   post:
- *     summary: Add job post access for a candidate
- *     description: Grants access to a specific job post for a candidate who already has profile access
+ *     summary: Add job post access for multiple candidates
+ *     description: Grants access to a specific job post for multiple candidates who already have profile access.
  *     tags: [Admin]
  *     requestBody:
  *       required: true
@@ -453,15 +453,17 @@ exports.revokeProfileAccess = async (req, res) => {
  *             type: object
  *             required:
  *               - employerId
- *               - candidateId
+ *               - candidateIds
  *               - jobPostId
  *             properties:
  *               employerId:
  *                 type: string
  *                 description: ID of the employer granting access
- *               candidateId:
- *                 type: string
- *                 description: ID of the candidate receiving access
+ *               candidateIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of candidate IDs receiving access
  *               jobPostId:
  *                 type: string
  *                 description: ID of the job post to grant access to
@@ -475,9 +477,9 @@ exports.revokeProfileAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Job post access granted
+ *                   example: Job post access granted to all candidates
  *       400:
- *         description: Access not granted to the candidate
+ *         description: Access not granted to one or more candidates
  *         content:
  *           application/json:
  *             schema:
@@ -485,7 +487,11 @@ exports.revokeProfileAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Access not granted to this candidate
+ *                   example: Access not granted to some candidates
+ *                 failedCandidates:
+ *                   type: array
+ *                   items:
+ *                     type: string
  *       500:
  *         description: Server error
  *         content:
@@ -501,22 +507,47 @@ exports.revokeProfileAccess = async (req, res) => {
  *                   description: Error object
  */
 exports.addJobPostAccess = async (req, res) => {
-  const { employerId, candidateId, jobPostId } = req.body;
+  const { employerId, candidateIds, jobPostId } = req.body;
+
   try {
-    const accessRequest = await ProfileAccess.findOne({
-      where: { employerId, candidateId },
+    // Fetch all candidates' access requests in one query
+    const accessRequests = await ProfileAccess.findAll({
+      where: {
+        employerId,
+        candidateId: candidateIds,
+      },
     });
 
-    if (!accessRequest) {
-      return res
-        .status(400)
-        .json({ message: "Access not granted to this candidate" });
+    // Separate successful and failed candidates
+    const candidateIdSet = new Set(candidateIds);
+    const foundCandidateIds = new Set(
+      accessRequests.map((req) => req.candidateId)
+    );
+    const failedCandidates = Array.from(candidateIdSet).filter(
+      (id) => !foundCandidateIds.has(id)
+    );
+
+    // Prepare bulk updates for those who don't already have the job post access
+    const updates = accessRequests
+      .filter((req) => !req.accessibleJobPostsByCandidate.includes(jobPostId))
+      .map((req) => {
+        req.accessibleJobPostsByCandidate.push(jobPostId);
+        return req.save();
+      });
+
+    await Promise.all(updates);
+
+    // Return response with success or partial failure
+    if (failedCandidates.length > 0) {
+      return res.status(400).json({
+        message: "Access not granted to some candidates",
+        failedCandidates,
+      });
     }
 
-    accessRequest.accessibleJobPostsByCandidate.push(jobPostId);
-    await accessRequest.save();
-
-    res.status(200).json({ message: "Job post access granted" });
+    res
+      .status(200)
+      .json({ message: "Job post access granted to all candidates" });
   } catch (error) {
     res.status(500).json({ message: "Error granting job post access", error });
   }
@@ -524,10 +555,10 @@ exports.addJobPostAccess = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/admin/job-post-access:
- *   delete:
- *     summary: Remove job post access for a candidate
- *     description: Revokes access to a specific job post for a candidate
+ * /api/v1/admin/remove-job-post-access:
+ *   post:
+ *     summary: Remove job post access for multiple candidates
+ *     description: Revokes access to a specific job post for multiple candidates.
  *     tags: [Admin]
  *     requestBody:
  *       required: true
@@ -537,15 +568,17 @@ exports.addJobPostAccess = async (req, res) => {
  *             type: object
  *             required:
  *               - employerId
- *               - candidateId
+ *               - candidateIds
  *               - jobPostId
  *             properties:
  *               employerId:
  *                 type: string
  *                 description: ID of the employer revoking access
- *               candidateId:
- *                 type: string
- *                 description: ID of the candidate losing access
+ *               candidateIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of candidate IDs losing access
  *               jobPostId:
  *                 type: string
  *                 description: ID of the job post to revoke access from
@@ -559,9 +592,9 @@ exports.addJobPostAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Job post access removed
+ *                   example: Job post access removed for all candidates
  *       400:
- *         description: Access not granted to the candidate
+ *         description: Access not granted to one or more candidates
  *         content:
  *           application/json:
  *             schema:
@@ -569,7 +602,11 @@ exports.addJobPostAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Access not granted to this candidate
+ *                   example: Access not granted to some candidates
+ *                 failedCandidates:
+ *                   type: array
+ *                   items:
+ *                     type: string
  *       500:
  *         description: Server error
  *         content:
@@ -585,25 +622,46 @@ exports.addJobPostAccess = async (req, res) => {
  *                   description: Error object
  */
 exports.removeJobPostAccess = async (req, res) => {
-  const { employerId, candidateId, jobPostId } = req.body;
+  const { employerId, candidateIds, jobPostId } = req.body;
+
   try {
-    const accessRequest = await ProfileAccess.findOne({
-      where: { employerId, candidateId },
+    // Fetch all access records in a single query
+    const accessRequests = await ProfileAccess.findAll({
+      where: {
+        employerId,
+        candidateId: candidateIds,
+      },
     });
 
-    if (!accessRequest) {
-      return res
-        .status(400)
-        .json({ message: "Access not granted to this candidate" });
+    const candidateIdSet = new Set(candidateIds);
+    const foundCandidateIds = new Set(
+      accessRequests.map((req) => req.candidateId)
+    );
+    const failedCandidates = Array.from(candidateIdSet).filter(
+      (id) => !foundCandidateIds.has(id)
+    );
+
+    // Filter and save only those that need updates
+    const updates = accessRequests.map((accessRequest) => {
+      accessRequest.accessibleJobPostsByCandidate =
+        accessRequest.accessibleJobPostsByCandidate.filter(
+          (id) => id !== jobPostId
+        );
+      return accessRequest.save();
+    });
+
+    await Promise.all(updates);
+
+    if (failedCandidates.length > 0) {
+      return res.status(400).json({
+        message: "Access not granted to some candidates",
+        failedCandidates,
+      });
     }
 
-    accessRequest.accessibleJobPostsByCandidate =
-      accessRequest.accessibleJobPostsByCandidate.filter(
-        (id) => id !== jobPostId
-      );
-    await accessRequest.save();
-
-    res.status(200).json({ message: "Job post access removed" });
+    res
+      .status(200)
+      .json({ message: "Job post access removed for all candidates" });
   } catch (error) {
     res.status(500).json({ message: "Error removing job post access", error });
   }
@@ -931,7 +989,7 @@ exports.getCandidates = async (req, res) => {
           model: JobCate,
           as: "job_category",
           attributes: ["cate_desc"],
-        }
+        },
       ],
       body: req.body,
       standardFields: ["createdAt"],

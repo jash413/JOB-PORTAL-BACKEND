@@ -31,7 +31,7 @@ router.post("/revoke-profile-access", adminController.revokeProfileAccess);
 router.post("/job-post-access", adminController.addJobPostAccess);
 
 // Remove job post access from a candidate
-router.delete("/job-post-access", adminController.removeJobPostAccess);
+router.post("/remove-job-post-access", adminController.removeJobPostAccess);
 
 // Get all profile access
 router.get("/profile-access", adminController.getProfileAccess);
