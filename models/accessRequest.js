@@ -30,6 +30,8 @@ const AccessRequest = sequelize.define("AccessRequest", {
     defaultValue: DataTypes.NOW,
   },
   reviewedAt: DataTypes.DATE,
+},{
+  timestamps: true,
 });
 
 AccessRequest.belongsTo(Employer, {

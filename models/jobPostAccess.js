@@ -34,6 +34,8 @@ const JobPostAccess = sequelize.define("JobPostAccess", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+},{
+  timestamps: true,
 });
 
 module.exports = JobPostAccess;

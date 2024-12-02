@@ -40,8 +40,10 @@ const CandidateEducation = sequelize.define(
   },
   {
     tableName: "candidate_edu_details",
-    timestamps: false,
+    timestamps: true,
   }
 );
+
+CandidateEducation.sync({ alter: true });
 
 module.exports = CandidateEducation;

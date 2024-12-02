@@ -30,6 +30,8 @@ const ProfileAccess = sequelize.define("ProfileAccess", {
     type: DataTypes.JSON,
     defaultValue: [],
   },
+},{
+  timestamps: true,
 });
 
 ProfileAccess.belongsTo(Candidate,{

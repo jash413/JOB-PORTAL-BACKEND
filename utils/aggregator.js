@@ -113,6 +113,11 @@ const aggregateData = async ({
       allowedSortFields
     );
 
+    // If order is not provided, send the latest records first
+    if (!order.length) {
+      order.push(["createdAt", "DESC"]);
+    }
+
     const options = {
       where,
       attributes,

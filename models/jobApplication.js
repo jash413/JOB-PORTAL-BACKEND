@@ -30,6 +30,8 @@ const JobApplication = sequelize.define("JobApplication", {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+},{
+  timestamps: true,
 });
 
 JobApplication.belongsTo(Candidate, {

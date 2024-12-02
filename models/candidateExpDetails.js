@@ -35,6 +35,8 @@ const CandidateExpDetails = sequelize.define("candidate_exp_details", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+},{
+  timestamps: true,
 });
 
 
