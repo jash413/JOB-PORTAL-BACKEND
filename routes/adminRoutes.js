@@ -27,11 +27,8 @@ router.post("/grant-profile-access", adminController.grantProfileAccess);
 // Revoke profile access from a employer
 router.post("/revoke-profile-access", adminController.revokeProfileAccess);
 
-// Add job post access to a candidate
-router.post("/job-post-access", adminController.addJobPostAccess);
-
-// Remove job post access from a candidate
-router.post("/remove-job-post-access", adminController.removeJobPostAccess);
+// Update job post access
+router.post("/update-job-post-access", adminController.updateJobPostAccess);
 
 // Get all profile access
 router.get("/profile-access", adminController.getProfileAccess);

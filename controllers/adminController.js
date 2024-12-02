@@ -6,6 +6,7 @@ const ProfileAccess = require("../models/profileAccess");
 const JobPost = require("../models/jobPost");
 const Login = require("../models/loginMast");
 const JobCate = require("../models/jobCate");
+const sequelize = require("../config/db");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -440,10 +441,10 @@ exports.revokeProfileAccess = async (req, res) => {
 
 /**
  * @swagger
- * /api/v1/admin/job-post-access:
+ * /api/v1/admin/update-job-post-access:
  *   post:
- *     summary: Add job post access for multiple candidates
- *     description: Grants access to a specific job post for multiple candidates who already have profile access.
+ *     summary: Update job post access for candidates
+ *     description: Grants job post access to specified candidates and removes access from all other candidates of the employer for this job post
  *     tags: [Admin]
  *     requestBody:
  *       required: true
@@ -458,18 +459,18 @@ exports.revokeProfileAccess = async (req, res) => {
  *             properties:
  *               employerId:
  *                 type: string
- *                 description: ID of the employer granting access
+ *                 description: ID of the employer managing job post access
  *               candidateIds:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of candidate IDs receiving access
+ *                 description: Array of candidate IDs to receive job post access
  *               jobPostId:
  *                 type: string
- *                 description: ID of the job post to grant access to
+ *                 description: ID of the job post to manage access for
  *     responses:
  *       200:
- *         description: Job post access granted successfully
+ *         description: Job post access updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -477,9 +478,13 @@ exports.revokeProfileAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Job post access granted to all candidates
+ *                   example: Job post access updated successfully
+ *                 updatedCandidates:
+ *                   type: array
+ *                   items:
+ *                     type: string
  *       400:
- *         description: Access not granted to one or more candidates
+ *         description: Validation error or partial update failure
  *         content:
  *           application/json:
  *             schema:
@@ -487,7 +492,6 @@ exports.revokeProfileAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Access not granted to some candidates
  *                 failedCandidates:
  *                   type: array
  *                   items:
@@ -501,169 +505,89 @@ exports.revokeProfileAccess = async (req, res) => {
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Error granting job post access
  *                 error:
  *                   type: object
- *                   description: Error object
  */
-exports.addJobPostAccess = async (req, res) => {
+exports.updateJobPostAccess = async (req, res) => {
   const { employerId, candidateIds, jobPostId } = req.body;
 
-  try {
-    // Fetch all candidates' access requests in one query
-    const accessRequests = await ProfileAccess.findAll({
-      where: {
-        employerId,
-        candidateId: candidateIds,
-      },
-    });
-
-    // Separate successful and failed candidates
-    const candidateIdSet = new Set(candidateIds);
-    const foundCandidateIds = new Set(
-      accessRequests.map((req) => req.candidateId)
-    );
-    const failedCandidates = Array.from(candidateIdSet).filter(
-      (id) => !foundCandidateIds.has(id)
-    );
-
-    // Prepare bulk updates for those who don't already have the job post access
-    const updates = accessRequests
-      .filter((req) => !req.accessibleJobPostsByCandidate.includes(jobPostId))
-      .map((req) => {
-        req.accessibleJobPostsByCandidate.push(jobPostId);
-        return req.save();
-      });
-
-    await Promise.all(updates);
-
-    // Return response with success or partial failure
-    if (failedCandidates.length > 0) {
-      return res.status(400).json({
-        message: "Access not granted to some candidates",
-        failedCandidates,
-      });
-    }
-
-    res
-      .status(200)
-      .json({ message: "Job post access granted to all candidates" });
-  } catch (error) {
-    res.status(500).json({ message: "Error granting job post access", error });
+  // Validate input
+  if (!employerId || !candidateIds || !jobPostId) {
+    return res.status(400).json({ message: "Missing required parameters" });
   }
-};
-
-/**
- * @swagger
- * /api/v1/admin/remove-job-post-access:
- *   post:
- *     summary: Remove job post access for multiple candidates
- *     description: Revokes access to a specific job post for multiple candidates.
- *     tags: [Admin]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - employerId
- *               - candidateIds
- *               - jobPostId
- *             properties:
- *               employerId:
- *                 type: string
- *                 description: ID of the employer revoking access
- *               candidateIds:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of candidate IDs losing access
- *               jobPostId:
- *                 type: string
- *                 description: ID of the job post to revoke access from
- *     responses:
- *       200:
- *         description: Job post access removed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Job post access removed for all candidates
- *       400:
- *         description: Access not granted to one or more candidates
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Access not granted to some candidates
- *                 failedCandidates:
- *                   type: array
- *                   items:
- *                     type: string
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Error removing job post access
- *                 error:
- *                   type: object
- *                   description: Error object
- */
-exports.removeJobPostAccess = async (req, res) => {
-  const { employerId, candidateIds, jobPostId } = req.body;
 
   try {
-    // Fetch all access records in a single query
-    const accessRequests = await ProfileAccess.findAll({
-      where: {
-        employerId,
-        candidateId: candidateIds,
-      },
+    // Fetch all access requests for the employer
+    const allAccessRequests = await ProfileAccess.findAll({
+      where: { employerId },
     });
 
-    const candidateIdSet = new Set(candidateIds);
-    const foundCandidateIds = new Set(
-      accessRequests.map((req) => req.candidateId)
-    );
-    const failedCandidates = Array.from(candidateIdSet).filter(
-      (id) => !foundCandidateIds.has(id)
-    );
+    // Track candidates who were successfully updated
+    const updatedCandidates = [];
 
-    // Filter and save only those that need updates
-    const updates = accessRequests.map((accessRequest) => {
-      accessRequest.accessibleJobPostsByCandidate =
-        accessRequest.accessibleJobPostsByCandidate.filter(
+    // Process each access request
+    for (const accessRequest of allAccessRequests) {
+      const { candidateId, accessibleJobPostsByCandidate } = accessRequest;
+
+      // Check if the candidate is in the provided list
+      const isCandidateInList = candidateIds.includes(candidateId);
+
+      if (isCandidateInList) {
+        // Check if the job post is already accessible
+        const hasJobPostAccess =
+          accessibleJobPostsByCandidate.includes(jobPostId);
+
+        if (!hasJobPostAccess) {
+          // Add job post access if not already present
+          accessibleJobPostsByCandidate.push(jobPostId);
+
+          // Update the access request
+          await ProfileAccess.update(
+            { accessibleJobPostsByCandidate },
+            { where: { employerId, candidateId } }
+          );
+
+          updatedCandidates.push(candidateId);
+        }
+      } else {
+        // Remove job post access for candidates not in the list
+        const updatedJobPosts = accessibleJobPostsByCandidate.filter(
           (id) => id !== jobPostId
         );
-      return accessRequest.save();
-    });
 
-    await Promise.all(updates);
+        if (updatedJobPosts.length !== accessibleJobPostsByCandidate.length) {
+          // Update only if there was a change
+          await ProfileAccess.update(
+            { accessibleJobPostsByCandidate: updatedJobPosts },
+            { where: { employerId, candidateId } }
+          );
+        }
+      }
+    }
 
-    if (failedCandidates.length > 0) {
+    // Check for any unprocessed candidates
+    const unprocessedCandidates = candidateIds.filter(
+      (id) => !updatedCandidates.includes(id)
+    );
+
+    if (unprocessedCandidates.length > 0) {
       return res.status(400).json({
-        message: "Access not granted to some candidates",
-        failedCandidates,
+        message: "Some specified candidates could not be processed",
+        failedCandidates: unprocessedCandidates,
       });
     }
 
-    res
-      .status(200)
-      .json({ message: "Job post access removed for all candidates" });
+    // Return success response
+    res.status(200).json({
+      message: "Job post access updated successfully",
+      updatedCandidates,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error removing job post access", error });
+    // Handle errors gracefully
+    res.status(500).json({
+      message: "Error updating job post access",
+      error: error.message,
+    });
   }
 };
 
