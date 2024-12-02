@@ -6,7 +6,6 @@ const ProfileAccess = require("../models/profileAccess");
 const JobPost = require("../models/jobPost");
 const Login = require("../models/loginMast");
 const JobCate = require("../models/jobCate");
-const sequelize = require("../config/db");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -1119,6 +1118,7 @@ exports.getEmployers = async (req, res) => {
  */
 exports.getJobPosts = async (req, res) => {
   try {
+    // Fetch job posts with associated Employer and JobCate models in one query
     const jobPosts = await aggregateData({
       baseModel: JobPost,
       includeModels: [
@@ -1144,9 +1144,40 @@ exports.getJobPosts = async (req, res) => {
       searchFields: ["job_title", "job_desc"],
       allowedSortFields: ["createdAt"],
     });
-    res.status(200).json(jobPosts);
+
+    // Fetch all profile access data at once and group by job_id
+    const profileAccessData = await ProfileAccess.findAll({
+      attributes: ["candidateId", "accessibleJobPostsByCandidate"],
+    });
+
+    // Create a Map for faster lookup of profile access by job_id
+    const jobAccessMap = new Map();
+
+    profileAccessData.forEach((access) => {
+      access.accessibleJobPostsByCandidate.forEach((jobId) => {
+        if (!jobAccessMap.has(jobId)) {
+          jobAccessMap.set(jobId, []);
+        }
+        jobAccessMap.get(jobId).push(access.candidateId);
+      });
+    });
+
+    // Map the profile access data to job posts directly
+    const jobPostsJson = jobPosts.records.map((job) => {
+      const job_id = job.job_id;
+      return {
+        ...job.toJSON(),
+        profileAccess: jobAccessMap.get(job_id) || [],
+      };
+    });
+
+    res.status(200).json({
+      ...jobPosts,
+      records: jobPostsJson,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching job posts", error });
+    console.error("Error fetching job posts:", error);
+    res.status(500).json({ message: "Error fetching job posts", error: error.message });
   }
 };
 
