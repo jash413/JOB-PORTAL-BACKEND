@@ -44,6 +44,4 @@ const CandidateEducation = sequelize.define(
   }
 );
 
-CandidateEducation.sync({ alter: true });
-
 module.exports = CandidateEducation;
