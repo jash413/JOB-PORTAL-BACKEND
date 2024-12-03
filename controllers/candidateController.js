@@ -335,6 +335,7 @@ exports.createCandidate = async (req, res) => {
         login_name: can_name,
         login_email: can_email,
         login_mobile: can_mobn,
+        profile_created: 1,
       });
     }
 
@@ -359,6 +360,7 @@ exports.createCandidate = async (req, res) => {
       login.login_name = can_name;
       login.login_email = can_email;
       login.login_mobile = can_mobn;
+      login.profile_created = 1;
       await login.save();
     }
 

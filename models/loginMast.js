@@ -68,6 +68,10 @@ const Login = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    profile_created: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "login_mast", // Assuming table name is `login_mast`

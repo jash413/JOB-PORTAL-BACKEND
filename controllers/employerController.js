@@ -7,6 +7,7 @@ const CandidateEducation = require("../models/candidateEdu");
 const CandidateExperience = require("../models/candidateExpDetails");
 const JobPost = require("../models/jobPost");
 const JobApplication = require("../models/jobApplication");
+const Login = require("../models/loginMast");
 const { Op } = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
@@ -301,6 +302,11 @@ exports.createEmployer = async (req, res) => {
       emp_loca,
       emp_addr,
     });
+
+    await Login.update(
+      { profile_created: 1 },
+      { where: { login_id: req.user.login_id } }
+    );
     res.status(201).json(newEmployer);
   } catch (error) {
     res.status(500).json({ error: "Error creating employer" });
