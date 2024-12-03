@@ -15,7 +15,7 @@ const JobCate = sequelize.define('JobCate', {
   }
 }, {
   tableName: 'job_cate',   // Ensuring the table name is exactly 'job_cate'
-  timestamps: false        // Disable automatic createdAt/updatedAt timestamps if not needed
+  timestamps: true        // Disable automatic createdAt/updatedAt timestamps if not needed
 });
 
 module.exports = JobCate;
