@@ -107,12 +107,11 @@ const createFileUploadConfig = (config = {}) => {
             }
           }
 
-          if (Object.keys(result).length === 0) {
-            await cleanupOnError(uploadedPaths);
-            reject(new Error("No files were uploaded"));
-          } else {
-            resolve(result);
-          }
+          resolve({
+            files: result,
+            cleanup: async () => await cleanupOnError(uploadedPaths),
+            fields: req.body,
+          });
         }
       });
     });
@@ -132,12 +131,11 @@ const createFileUploadConfig = (config = {}) => {
     try {
       const file = await fs.readFile(filePath);
       res.send(file);
-    }
-    catch (error) {
+    } catch (error) {
       console.error(`Error reading file ${filePath}:`, error);
-      res.status(404).send('File not found');
+      res.status(404).send("File not found");
     }
-  }
+  };
 
   return {
     uploadFiles,
