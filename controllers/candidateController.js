@@ -291,27 +291,18 @@ exports.getCandidateById = async (req, res) => {
  */
 exports.createCandidate = async (req, res) => {
   try {
-    let profileImageUrl = null;
-    let resumeUrl = null;
+    // Upload configuration
+    const { uploadFiles } = await createFileUploadConfig({
+      uploadDir: "uploads/candidates",
+      fileTypes: { image: /jpeg|jpg|png/, document: /pdf/ },
+      maxFileSize: 5 * 1024 * 1024, // 5MB max file size
+    });
 
-    // Check if files are provided and configure upload
-    if (req.files && (req.files.profileImage || req.files.resume)) {
-      const { uploadFiles } = await createFileUploadConfig({
-        uploadDir: "uploads/candidates",
-        fileTypes: { image: /jpeg|jpg|png/, document: /pdf/ },
-        maxFileSize: 5 * 1024 * 1024, // 5MB max file size
-      });
-
-      // Upload files and extract paths
-      const uploadedFiles = await uploadFiles(req, res, [
-        "profileImage",
-        "resume",
-      ]);
-      profileImageUrl = uploadedFiles.profileImage || null;
-      resumeUrl = uploadedFiles.resume || null;
-    }
-
-    // Destructure body fields
+    // Upload files and get paths
+    const uploadedFiles = await uploadFiles(req, res, [
+      "profileImage",
+      "resume",
+    ]);
     const {
       can_name,
       can_email,
@@ -321,6 +312,10 @@ exports.createCandidate = async (req, res) => {
       can_about,
       can_skill,
     } = req.body;
+
+    // Extract uploaded file paths
+    const profileImageUrl = uploadedFiles.profileImage || null;
+    const resumeUrl = uploadedFiles.resume || null;
 
     // Check for duplicate email and mobile
     const emailInUse = await Candidate.findOne({ where: { can_email } });
@@ -420,7 +415,7 @@ exports.createCandidate = async (req, res) => {
  */
 exports.updateCandidate = async (req, res) => {
   try {
-    // Configure file upload (only execute if files are present)
+    // Configure file upload with dynamic parameters
     const fileUploadConfig = createFileUploadConfig({
       uploadDir: "uploads/candidates",
       fileTypes: { image: /jpeg|jpg|png/, document: /pdf/ },
@@ -428,21 +423,14 @@ exports.updateCandidate = async (req, res) => {
     });
     const { uploadFiles, deleteFile } = fileUploadConfig;
 
-    let profileImageUrl = null;
-    let resumeUrl = null;
-
-    // Upload files only if they are provided
-    if (req.files && (req.files.profileImage || req.files.resume)) {
-      const uploadedFiles = await uploadFiles(req, res, [
-        "profileImage",
-        "resume",
-      ]);
-      profileImageUrl = uploadedFiles.profileImage || null;
-      resumeUrl = uploadedFiles.resume || null;
-    }
-
-    // Destructure body fields
+    // Upload files and capture paths
+    const uploadedFiles = await uploadFiles(req, res, [
+      "profileImage",
+      "resume",
+    ]);
     const { can_name, can_email, can_mobn, can_job_cate, reg_date } = req.body;
+    const profileImageUrl = uploadedFiles.profileImage || null;
+    const resumeUrl = uploadedFiles.resume || null;
 
     // Retrieve candidate by ID
     const candidate = await Candidate.findOne({
@@ -452,13 +440,11 @@ exports.updateCandidate = async (req, res) => {
       return res.status(404).json({ error: "Candidate not found" });
     }
 
-    // Delete old files only if new files are uploaded
-    if (profileImageUrl && candidate.can_profile_img) {
+    // Delete old files if new ones are uploaded
+    if (profileImageUrl && candidate.can_profile_img)
       await deleteFile(candidate.can_profile_img);
-    }
-    if (resumeUrl && candidate.can_resume) {
+    if (resumeUrl && candidate.can_resume)
       await deleteFile(candidate.can_resume);
-    }
 
     // Retrieve associated login record
     const login = await Login.findByPk(candidate.login_id);
@@ -466,31 +452,26 @@ exports.updateCandidate = async (req, res) => {
       return res.status(404).json({ error: "Associated login not found" });
     }
 
-    // Check for duplicate email and mobile (excluding current candidate)
-    const emailInUse = await Candidate.findOne({
-      where: { can_email, can_code: { [Op.ne]: candidate.can_code } },
-    });
-    const mobileInUse = await Candidate.findOne({
-      where: { can_mobn, can_code: { [Op.ne]: candidate.can_code } },
-    });
-
-    if (emailInUse) {
+    // Check for duplicate email and mobile, ignoring the current candidate's ID
+    const emailInUse = await Candidate.findOne({ where: { can_email } });
+    const mobileInUse = await Candidate.findOne({ where: { can_mobn } });
+    if (emailInUse && emailInUse.can_code !== candidate.can_code) {
       return res.status(400).json({ error: "Email already in use" });
     }
-    if (mobileInUse) {
+    if (mobileInUse && mobileInUse.can_code !== candidate.can_code) {
       return res.status(400).json({ error: "Mobile number already in use" });
     }
 
-    // Reset verification status if email or mobile changed
+    // Reset verification status if email or mobile is changed
     if (can_email && can_email !== candidate.can_email)
       login.email_ver_status = 0;
     if (can_mobn && can_mobn !== candidate.can_mobn) login.phone_ver_status = 0;
 
     // Update login details
     Object.assign(login, {
-      login_name: can_name || login.login_name,
-      login_email: can_email || login.login_email,
-      login_mobile: can_mobn || login.login_mobile,
+      login_name: can_name,
+      login_email: can_email,
+      login_mobile: can_mobn,
     });
     await login.save();
 
@@ -508,7 +489,7 @@ exports.updateCandidate = async (req, res) => {
 
     res.status(200).json({ message: "Candidate updated successfully" });
   } catch (error) {
-    console.error("Error updating candidate:", error);
+    console.error("Error updating candidate:", error); // Log error for debugging
     res.status(500).json({ error: "Error updating candidate" });
   }
 };
