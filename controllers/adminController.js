@@ -844,6 +844,10 @@ exports.getCandidatesWithProfileAccess = async (req, res) => {
  *                 type: integer
  *                 description: Candidate code to filter candidates
  *                 example: 123
+ *               open_to_job:
+ *                 type: boolean
+ *                 description: Filter candidates open to job opportunities
+ *                 example: 1
  *     responses:
  *       200:
  *         description: List of candidates with pagination and filter details
@@ -934,7 +938,7 @@ exports.getCandidates = async (req, res) => {
         },
       ],
       body: req.body,
-      standardFields: ["createdAt", "can_code"],
+      standardFields: ["createdAt", "can_code", "open_to_job"],
       searchFields: ["can_name"],
       allowedSortFields: ["createdAt"],
     });
