@@ -66,6 +66,10 @@ const Candidate = sequelize.define(
       type: DataTypes.STRING, // Resume file path
       allowNull: true,
     },
+    open_to_job: {
+      type: DataTypes.BOOLEAN, // Open to work status: 1 (yes), 0 (no)
+      defaultValue: true,
+    },
   },
   {
     tableName: "candidate_mast", // Assuming this is the table name in your database
