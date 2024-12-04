@@ -1010,6 +1010,10 @@ exports.getCandidates = async (req, res) => {
  *                 type: string
  *                 description: Search term for candidate name or code
  *                 example: John Doe
+ *               user_approval_status:
+ *                 type: boolean
+ *                 description: Filter employers by user approval status
+ *                 example: 1
  *     responses:
  *       200:
  *         description: List of employers with pagination and filter details
@@ -1056,6 +1060,28 @@ exports.getCandidates = async (req, res) => {
  */
 exports.getEmployers = async (req, res) => {
   try {
+    // Filter employers by user approval status
+    if (
+      req.body.user_approval_status === 0 ||
+      req.body.user_approval_status === 1
+    ) {
+      // Fetch logins with user_approval_status
+      const logins = await Login.findAll({
+        where: {
+          user_approval_status: req.body.user_approval_status,
+          login_type: "EMP",
+        },
+        attributes: ["login_id"],
+        raw: true,
+      });
+
+      // Extract login IDs
+      const loginIds = logins.map((login) => login.login_id);
+
+      // Add login IDs to search criteria
+      req.body.login_id = loginIds;
+    }
+
     const employers = await aggregateData({
       baseModel: Employer,
       includeModels: [
@@ -1071,7 +1097,7 @@ exports.getEmployers = async (req, res) => {
         },
       ],
       body: req.body,
-      standardFields: ["createdAt"],
+      standardFields: ["createdAt", "cmp_code", "login_id"],
       searchFields: ["cmp_name", "cmp_code"],
       allowedSortFields: ["createdAt"],
     });
