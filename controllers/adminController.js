@@ -848,6 +848,10 @@ exports.getCandidatesWithProfileAccess = async (req, res) => {
  *                 type: boolean
  *                 description: Filter candidates open to job opportunities
  *                 example: 1
+ *               user_approval_status:
+ *                 type: boolean
+ *                 description: Filter candidates by user approval status
+ *                 example: 1
  *     responses:
  *       200:
  *         description: List of candidates with pagination and filter details
@@ -894,6 +898,28 @@ exports.getCandidatesWithProfileAccess = async (req, res) => {
  */
 exports.getCandidates = async (req, res) => {
   try {
+    // Filter candidates by user approval status
+    if (
+      req.body.user_approval_status === 0 ||
+      req.body.user_approval_status === 1
+    ) {
+      // Fetch logins with user_approval_status
+      const logins = await Login.findAll({
+        where: {
+          user_approval_status: req.body.user_approval_status,
+          login_type: "CND",
+        },
+        attributes: ["login_id"],
+        raw: true,
+      });
+
+      // Extract login IDs
+      const loginIds = logins.map((login) => login.login_id);
+
+      // Add login IDs to search criteria
+      req.body.login_id = loginIds;
+    }
+
     const candidates = await aggregateData({
       baseModel: Candidate,
       includeModels: [
@@ -938,7 +964,7 @@ exports.getCandidates = async (req, res) => {
         },
       ],
       body: req.body,
-      standardFields: ["createdAt", "can_code", "open_to_job"],
+      standardFields: ["createdAt", "can_code", "open_to_job", "login_id"],
       searchFields: ["can_name"],
       allowedSortFields: ["createdAt"],
     });
