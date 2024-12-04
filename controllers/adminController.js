@@ -1620,7 +1620,18 @@ exports.getJobPostsWithNoAccess = async (req, res) => {
     // Aggregate job post data with optimized fields
     const aggregatedData = await aggregateData({
       baseModel: JobPost,
-      includeModels: [], // No associations to include
+      includeModels: [
+        {
+          model: Employer,
+          as: "employer",
+          attributes: ["cmp_name", "cmp_email", "cmp_mobn", "emp_loca"],
+        },
+        {
+          model: JobCate,
+          as: "job_category",
+          attributes: ["cate_desc"],
+        },
+      ], // No associations to include
       body: {
         ...body,
         job_id: jobPostCodes,
