@@ -567,18 +567,6 @@ exports.updateJobPostAccess = async (req, res) => {
       }
     }
 
-    // Check for any unprocessed candidates
-    const unprocessedCandidates = candidateIds.filter(
-      (id) => !updatedCandidates.includes(id)
-    );
-
-    if (unprocessedCandidates.length > 0) {
-      return res.status(400).json({
-        message: "Some specified candidates could not be processed",
-        failedCandidates: unprocessedCandidates,
-      });
-    }
-
     // Return success response
     res.status(200).json({
       message: "Job post access updated successfully",
