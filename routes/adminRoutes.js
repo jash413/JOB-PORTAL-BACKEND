@@ -21,6 +21,9 @@ router.put(
   adminController.updateUserApprovalStatus
 );
 
+// Update candidate open to work status
+router.put("/candidates/:id/open-to-job", adminController.updateCandidateOpenToJob);
+
 // Grant profile access to a employer
 router.post("/grant-profile-access", adminController.grantProfileAccess);
 

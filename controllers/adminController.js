@@ -1327,6 +1327,74 @@ exports.updateUserApprovalStatus = async (req, res) => {
 
 /**
  * @swagger
+ * /api/v1/admin/candidates/{id}/open-to-job:
+ *   put:
+ *     summary: Update the open to job status of a candidate
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Candidate ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               open_to_job:
+ *                 type: boolean
+ *                 description: New open to job status of the candidate
+ *                 enum: [0, 1]
+ *             example:
+ *               open_to_job: 1
+ *     responses:
+ *       200:
+ *         description: Candidate open to job status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Candidate open to job status updated"
+ *       500:
+ *         description: Error updating candidate open to job status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ *                   example: "Error updating candidate open to job status"
+ */
+exports.updateCandidateOpenToJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { open_to_job } = req.body;
+    const candidate = await Candidate.findByPk(id);
+    if (!candidate) {
+      return res.status(404).json({ message: "Candidate not found" });
+    }
+    candidate.open_to_job = open_to_job;
+    await candidate.save();
+    res.status(200).json({ message: "Candidate open to job status updated" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating candidate open to job status", error });
+  }
+};
+
+/**
+ * @swagger
  * /api/v1/admin/employers/{id}:
  *   get:
  *     summary: Get an employer by ID

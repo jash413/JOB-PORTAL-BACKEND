@@ -251,6 +251,10 @@ exports.getCandidateById = async (req, res) => {
  *               can_about:
  *                 type: string
  *                 description: About candidate
+ *               open_to_job:
+ *                 type: boolean
+ *                 description: New open to job status of the candidate
+ *                 enum: [0, 1]
  *               profileImage:
  *                 type: string
  *                 format: binary
@@ -311,6 +315,7 @@ exports.createCandidate = async (req, res) => {
       reg_date,
       can_about,
       can_skill,
+      open_to_job,
     } = req.body;
 
     // Extract uploaded file paths
@@ -351,6 +356,7 @@ exports.createCandidate = async (req, res) => {
       can_skill,
       can_profile_img: profileImageUrl,
       can_resume: resumeUrl,
+      open_to_job,
     });
 
     // Update login details if needed
@@ -399,6 +405,10 @@ exports.createCandidate = async (req, res) => {
  *               reg_date:
  *                 type: string
  *                 format: date
+ *               open_to_job:
+ *                 type: boolean
+ *                 description: New open to job status of the candidate
+ *                 enum: [0, 1]
  *               profileImage:
  *                 type: string
  *                 format: binary
@@ -430,7 +440,14 @@ exports.updateCandidate = async (req, res) => {
       "profileImage",
       "resume",
     ]);
-    const { can_name, can_email, can_mobn, can_job_cate, reg_date } = req.body;
+    const {
+      can_name,
+      can_email,
+      can_mobn,
+      can_job_cate,
+      reg_date,
+      open_to_job,
+    } = req.body;
     const profileImageUrl = uploadedFiles.profileImage || null;
     const resumeUrl = uploadedFiles.resume || null;
 
@@ -486,6 +503,7 @@ exports.updateCandidate = async (req, res) => {
       reg_date: reg_date || candidate.reg_date,
       can_profile_img: profileImageUrl || candidate.can_profile_img,
       can_resume: resumeUrl || candidate.can_resume,
+      open_to_job: open_to_job || candidate.open_to_job,
     });
     await candidate.save();
 
