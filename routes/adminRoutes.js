@@ -54,6 +54,12 @@ router.post(
 // Get all job posts
 router.post("/job-posts", adminController.getJobPosts);
 
+// Get all job posts with no access granted to candidate
+router.post(
+  "/get-job-posts-with-no-access-granted-to-candidates",
+  adminController.getJobPostsWithNoAccess
+);
+
 // Get employer by id
 router.get("/employers/:id", adminController.getEmployerById);
 

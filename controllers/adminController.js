@@ -1506,3 +1506,148 @@ exports.getCandidatesNotAccessibleToEmployer = async (req, res) => {
       .json({ message: "Error fetching candidates", error });
   }
 };
+
+/**
+ * @swagger
+ * /api/v1/admin/get-job-posts-with-no-access-granted-to-candidates:
+ *   post:
+ *     summary: Retrieve a list of job posts with no access granted to the candidates.
+ *     tags:
+ *       - Admin
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination.
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page.
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by.
+ *                 example: createdAt
+ *                 enum: [createdAt]
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC).
+ *                 example: ASC
+ *                 enum: [ASC, DESC]
+ *               search:
+ *                 type: string
+ *                 description: Search term for job title or description.
+ *                 example: web developer
+ *               employerId:
+ *                 type: integer
+ *                 description: Employer ID to filter job posts by access.
+ *                 example: 123
+ *     responses:
+ *       200:
+ *         description: List of job posts with pagination and filter details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of items.
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages.
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number.
+ *                     nextPage:
+ *                       type: integer
+ *                       description: Next page number.
+ *                     prevPage:
+ *                       type: integer
+ *                       description: Previous page number.
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       description: Indicates if there is a next page.
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       description: Indicates if there is a previous page.
+ *       500:
+ *         description: Error fetching job posts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message.
+ */
+exports.getJobPostsWithNoAccess = async (req, res) => {
+  try {
+    const { body } = req;
+
+    // Fetch all accessible job post IDs into a flat array
+    const profileAccess = await ProfileAccess.findAll({
+      attributes: ["accessibleJobPostsByCandidate"],
+      raw: true,
+    });
+
+    const jobPostIds = new Set(
+      profileAccess.flatMap((access) => access.accessibleJobPostsByCandidate)
+    );
+
+    // Fetch job posts not in the list of accessible job posts
+    const jobPosts = await JobPost.findAll({
+      where: {
+        job_id: {
+          [Op.notIn]: [...jobPostIds],
+        },
+      },
+      attributes: ["job_id"],
+      raw: true,
+    });
+
+    const jobPostCodes = jobPosts.map((job) => job.job_id);
+
+    // Aggregate job post data with optimized fields
+    const aggregatedData = await aggregateData({
+      baseModel: JobPost,
+      includeModels: [], // No associations to include
+      body: {
+        ...body,
+        job_id: jobPostCodes,
+      },
+      standardFields: ["job_title", "job_desc", "job_id"],
+      rangeFields: [], // No range fields needed
+      searchFields: ["job_title", "job_desc"],
+      allowedSortFields: ["createdAt"],
+    });
+
+    // map the profile access data to job posts directly
+    const jobPostsJson = aggregatedData.records.map((job) => {
+      return {
+        ...job.toJSON(),
+        profileAccess: [],
+      };
+    });
+
+    return res.status(200).json({
+      ...aggregatedData,
+      records: jobPostsJson,
+    });
+  } catch (error) {
+    console.error("Error fetching job posts with no access:", error);
+    return res.status(500).json({
+      message: "Error fetching job posts",
+      error: error.message || "Unexpected error occurred",
+    });
+  }
+};
