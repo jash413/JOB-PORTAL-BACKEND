@@ -320,8 +320,8 @@ exports.createCandidate = async (req, res) => {
     } = req.body;
 
     // Extract uploaded file paths
-    const profileImageUrl = uploadedFiles.profileImage || null;
-    const resumeUrl = uploadedFiles.resume || null;
+    const profileImageUrl = uploadedFiles.files.profileImage || null;
+    const resumeUrl = uploadedFiles.files.resume || null;
 
     // Check for duplicate email and mobile
     const emailInUse = await Login.findOne({
@@ -459,8 +459,8 @@ exports.updateCandidate = async (req, res) => {
       reg_date,
       open_to_job,
     } = req.body;
-    const profileImageUrl = uploadedFiles.profileImage || null;
-    const resumeUrl = uploadedFiles.resume || null;
+    const profileImageUrl = uploadedFiles.files.profileImage || null;
+    const resumeUrl = uploadedFiles.files.resume || null;
 
     // Retrieve candidate by ID
     const candidate = await Candidate.findOne({
