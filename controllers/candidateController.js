@@ -326,7 +326,7 @@ exports.createCandidate = async (req, res) => {
     const emailInUse = await Login.findOne({
       where: { login_email: can_email },
     });
-    const mobileInUse = await Candidate.findOne({
+    const mobileInUse = await Login.findOne({
       where: { login_mobile: can_mobn },
     });
     if (emailInUse) {
