@@ -284,14 +284,20 @@ exports.createEmployer = async (req, res) => {
 
     // Check for duplicate email and mobile
     const duplicateEmail = await Login.findOne({
-      where: { login_email: cmp_email },
+      where: {
+        login_email: cmp_email,
+        login_id: { [Op.ne]: req.user.login_id },
+      },
     });
     if (duplicateEmail) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
     const duplicateMobile = await Login.findOne({
-      where: { login_mobile: cmp_mobn },
+      where: {
+        login_mobile: cmp_mobn,
+        login_id: { [Op.ne]: req.user.login_id },
+      },
     });
     if (duplicateMobile) {
       return res.status(400).json({ error: "Mobile number already in use" });

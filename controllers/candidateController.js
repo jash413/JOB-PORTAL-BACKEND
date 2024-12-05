@@ -6,6 +6,7 @@ const Login = require("../models/loginMast");
 const CandidateExpDetails = require("../models/candidateExpDetails");
 const CandidateEduDetails = require("../models/candidateEdu");
 const createFileUploadConfig = require("../utils/fileUpload");
+const { Op } = require("sequelize");
 const { aggregateData } = require("../utils/aggregator");
 
 /**
@@ -324,10 +325,16 @@ exports.createCandidate = async (req, res) => {
 
     // Check for duplicate email and mobile
     const emailInUse = await Login.findOne({
-      where: { login_email: can_email },
+      where: {
+        login_email: can_email,
+        login_id: { [Op.ne]: req.user.login_id },
+      },
     });
     const mobileInUse = await Login.findOne({
-      where: { login_mobile: can_mobn },
+      where: {
+        login_mobile: can_mobn,
+        login_id: { [Op.ne]: req.user.login_id },
+      },
     });
     if (emailInUse) {
       return res.status(400).json({ error: "Email already in use" });
@@ -477,15 +484,17 @@ exports.updateCandidate = async (req, res) => {
 
     // Check for duplicate email and mobile, ignoring the current candidate's ID
     const emailInUse = await Login.findOne({
-      where: { login_email: can_email },
+      where: { login_email: can_email, login_id: { [Op.ne]: login.login_id } },
     });
     const mobileInUse = await Login.findOne({
-      where: { login_mobile: can_mobn },
+      where: { login_mobile: can_mobn, login_id: { [Op.ne]: login.login_id } },
     });
-    if (emailInUse && emailInUse.login_id !== candidate.login_id) {
+
+    if (emailInUse) {
       return res.status(400).json({ error: "Email already in use" });
     }
-    if (mobileInUse && mobileInUse.login_id !== candidate.login_id) {
+
+    if (mobileInUse) {
       return res.status(400).json({ error: "Mobile number already in use" });
     }
 
