@@ -316,7 +316,8 @@ exports.resetPassword = async (req, res) => {
  */
 exports.sendEmailVerification = async (req, res) => {
   try {
-    const token = await authService.sendVerificationEmail(req.user);
+    const user = await Login.findByPk(req.user.login_id);
+    const token = await authService.sendVerificationEmail(user);
     if (!token)
       return res
         .status(400)
