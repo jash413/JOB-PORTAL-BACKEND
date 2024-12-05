@@ -130,6 +130,19 @@ const authService = {
   },
 
   /**
+   * Mobile Login
+   * @param {string} login_mobile - User's mobile number
+   * @returns {string} OTP
+   */
+  async mobileLogin(login_mobile) {
+    const user = await Login.findOne({ where: { login_mobile } });
+    if (!user) return { error: "User not found" };
+
+    const otp = await this.sendPhoneVerificationOTP(user);
+    return otp;
+  },
+
+  /**
    * Reset password using token
    * @param {string} token - Reset token
    * @param {string} newPassword - New password
@@ -468,7 +481,9 @@ const authService = {
     user.phone_otp_expiry = null;
     await user.save();
 
-    return user;
+    const token = this.generateToken(user);
+
+    return { token, user };
   },
 
   /**

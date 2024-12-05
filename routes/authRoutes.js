@@ -40,6 +40,12 @@ router.post("/verify-phone", authMiddleware(), authController.verifyPhoneOTP);
 // Get profile info (Protected route)
 router.get("/profile", authMiddleware(), authController.getProfile);
 
+// Mobile login
+router.post("/mobile-login", authController.mobileLogin);
+
+// Mobile login verify
+router.post("/mobile-login-otp", authController.mobileLoginOTPVerification);
+
 // Update profile info (Protected route)
 router.put("/edit-profile", authMiddleware(), authController.editProfile);
 

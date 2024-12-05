@@ -112,6 +112,47 @@ exports.login = async (req, res) => {
 
 /**
  * @swagger
+ * /api/v1/auth/mobile-login:
+ *   post:
+ *     summary: Login a user using mobile number
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               login_mobile:
+ *                 type: string
+ *                 example: "1234567890"
+ *                 description: Mobile number must be 10 digits long
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Invalid mobile number
+ *       500:
+ *         description: Server error
+ */
+exports.mobileLogin = async (req, res) => {
+  try {
+    const { login_mobile } = req.body;
+    const response = await authService.mobileLogin(login_mobile);
+    if (response.error) return res.status(400).json(response);
+    res.json({ message: "OTP sent successfully" });
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};
+
+/**
+ * @swagger
  * /api/v1/auth/google:
  *   post:
  *     summary: Authenticate or register a user with Google
@@ -421,8 +462,52 @@ exports.sendPhoneOTP = async (req, res) => {
 exports.verifyPhoneOTP = async (req, res) => {
   try {
     const { otp } = req.body;
-    const user = await authService.verifyPhoneOTP(req.user.login_id, otp);
-    res.json({ message: "Phone verified successfully", user });
+    const response = await authService.verifyPhoneOTP(req.user.login_id, otp);
+    res.json({ message: "Phone verified successfully", response });
+  } catch (error) {
+    if (error.name === "AuthenticationError") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "An unexpected error occurred" });
+    }
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/auth/mobile-login-otp:
+ *   post:
+ *     summary: Login a user using mobile number and OTP
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               otp:
+ *                 type: string
+ *               login_mobile:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *       400:
+ *         description: Invalid OTP
+ *       500:
+ *         description: Server error
+ */
+exports.mobileLoginOTPVerification = async (req, res) => {
+  try {
+    const { otp, login_mobile } = req.body;
+    const user = await Login.findOne({ where: { login_mobile } });
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    const { token } = await authService.verifyPhoneOTP(user.login_id, otp);
+    res.json({ token, user });
   } catch (error) {
     if (error.name === "AuthenticationError") {
       res.status(400).json({ error: error.message });
