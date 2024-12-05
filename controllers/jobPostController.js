@@ -639,11 +639,13 @@ exports.getJobPosts = async (req, res) => {
       raw: true,
     });
 
-    const appliedJobIds = jobApplications.map((app) => app.job_id);
+    if (jobApplications) {
+      const appliedJobIds = jobApplications.map((app) => app.job_id);
 
-    uniqueJobIds = uniqueJobIds.filter(
-      (jobId) => !appliedJobIds.includes(jobId)
-    );
+      uniqueJobIds = uniqueJobIds.filter(
+        (jobId) => !appliedJobIds.includes(jobId)
+      );
+    }
 
     if (!uniqueJobIds.length) {
       return res.status(404).json({ error: "No accessible job posts found" });
