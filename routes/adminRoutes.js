@@ -22,7 +22,10 @@ router.put(
 );
 
 // Update candidate open to work status
-router.put("/candidates/:id/open-to-job", adminController.updateCandidateOpenToJob);
+router.put(
+  "/candidates/:id/open-to-job",
+  adminController.updateCandidateOpenToJob
+);
 
 // Grant profile access to a employer
 router.post("/grant-profile-access", adminController.grantProfileAccess);
@@ -62,6 +65,12 @@ router.post(
   "/get-job-posts-with-no-access-granted-to-candidates",
   adminController.getJobPostsWithNoAccess
 );
+
+// Get all logins
+router.post("/get-login-data", adminController.getLoginData);
+
+// Delete a login
+router.delete("/login-data/:id", adminController.deleteLoginData);
 
 // Get employer by id
 router.get("/employers/:id", adminController.getEmployerById);

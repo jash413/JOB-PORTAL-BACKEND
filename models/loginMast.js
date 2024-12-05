@@ -71,11 +71,11 @@ const Login = sequelize.define(
     profile_created: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-    },
+    }
   },
   {
     tableName: "login_mast", // Assuming table name is `login_mast`
-    timestamps: false, // Based on the table structure
+    timestamps: true, // Based on the table structure
   }
 );
 

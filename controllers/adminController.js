@@ -1782,3 +1782,195 @@ exports.getJobPostsWithNoAccess = async (req, res) => {
     });
   }
 };
+
+/**
+ * @swagger
+ * /api/v1/admin/get-login-data:
+ *   post:
+ *     summary: Retrieve a list of login data with dynamic filters, sorting, searching, and pagination
+ *     tags:
+ *       - Admin
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               page:
+ *                 type: integer
+ *                 description: Page number for pagination
+ *                 example: 1
+ *               limit:
+ *                 type: integer
+ *                 description: Number of records per page
+ *                 example: 10
+ *               sortBy:
+ *                 type: string
+ *                 description: Field to sort by
+ *                 enum: [createdAt]
+ *                 example: createdAt
+ *               sortOrder:
+ *                 type: string
+ *                 description: Sort order (ASC or DESC)
+ *                 enum: [ASC, DESC]
+ *                 example: ASC
+ *               search:
+ *                 type: string
+ *                 description: Search term for login name or email
+ *                 example: John Doe
+ *               profile_created:
+ *                 type: boolean
+ *                 description: Filter logins by profile creation status
+ *                 example: 1
+ *               user_approval_status:
+ *                 type: boolean
+ *                 description: Filter logins by user approval status
+ *                 example: 1
+ *               phone_ver_status:
+ *                 type: boolean
+ *                 description: Filter logins by phone verification status
+ *                 example: 1
+ *               email_ver_status:
+ *                 type: boolean
+ *                 description: Filter logins by email verification status
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: List of login data with pagination and filter details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     totalItems:
+ *                       type: integer
+ *                       description: Total number of items
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number
+ *                     nextPage:
+ *                       type: integer
+ *                       description: Next page number
+ *                     prevPage:
+ *                       type: integer
+ *                       description: Previous page number
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       description: Has next page
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       description: Has previous page
+ *       500:
+ *         description: Error fetching login data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.getLoginData = async (req, res) => {
+  try {
+    const loginData = await aggregateData({
+      baseModel: Login,
+      includeModels: [],
+      body: req.body,
+      standardFields: [
+        "profile_created",
+        "user_approval_status",
+        "phone_ver_status",
+        "email_ver_status",
+      ],
+      searchFields: ["login_name", "login_email"],
+      allowedSortFields: [],
+    });
+    res.status(200).json(loginData);
+  } catch (error) {
+    console.error("Error fetching login data:", error);
+    res.status(500).json({ message: "Error fetching login data", error });
+  }
+};
+
+/**
+ * @swagger
+ * /api/v1/admin/login-data/{id}:
+ *   delete:
+ *     summary: Delete login data by ID
+ *     tags:
+ *       - Admin
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Login ID
+ *     responses:
+ *       200:
+ *         description: Login data deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Login data deleted successfully"
+ *       404:
+ *         description: Login data not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Login data not found"
+ *       500:
+ *         description: Error deleting login data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error deleting login data"
+ *                 error:
+ *                   type: string
+ *                   description: Error message
+ */
+exports.deleteLoginData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const login = await Login.findByPk(id);
+    if (!login) {
+      return res.status(404).json({ message: "Login data not found" });
+    }
+
+    if (
+      login.phone_ver_status ||
+      login.email_ver_status ||
+      login.profile_created
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Cannot delete verified login data" });
+    }
+
+    await login.destroy();
+    res.status(200).json({ message: "Login data deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting login data:", error);
+    res.status(500).json({ message: "Error deleting login data", error });
+  }
+};
