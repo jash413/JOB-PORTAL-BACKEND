@@ -624,7 +624,7 @@ exports.getJobPosts = async (req, res) => {
     const employerIds = [
       ...new Set(profileAccessData.map((item) => item.employerId)),
     ];
-    const uniqueJobIds = [
+    let uniqueJobIds = [
       ...new Set(
         profileAccessData.flatMap(
           (item) => item.accessibleJobPostsByCandidate || []
