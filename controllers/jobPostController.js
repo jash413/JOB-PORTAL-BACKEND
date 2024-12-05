@@ -221,7 +221,7 @@ exports.getAllJobPosts = async (req, res) => {
     ];
 
     // Fields that support equality filtering
-    const standardFields = ["job_title", "job_location", "job_cate","cmp_id"];
+    const standardFields = ["job_title", "job_location", "job_cate", "cmp_id"];
 
     // Fields that support range filtering (if applicable)
     const rangeFields = [];
@@ -632,6 +632,19 @@ exports.getJobPosts = async (req, res) => {
       ),
     ];
 
+    // Remove job IDs that candidate already applied to
+    const jobApplications = await JobApplication.findAll({
+      where: { candidateId: candidate.can_code },
+      attributes: ["job_id"],
+      raw: true,
+    });
+
+    const appliedJobIds = jobApplications.map((app) => app.job_id);
+
+    uniqueJobIds = uniqueJobIds.filter(
+      (jobId) => !appliedJobIds.includes(jobId)
+    );
+
     if (!uniqueJobIds.length) {
       return res.status(404).json({ error: "No accessible job posts found" });
     }
@@ -652,7 +665,7 @@ exports.getJobPosts = async (req, res) => {
         job_id: uniqueJobIds,
         status: "active",
       },
-      standardFields: ["cmp_id", "job_id", "job_cate","status"],
+      standardFields: ["cmp_id", "job_id", "job_cate", "status"],
       searchFields: ["job_title", "job_location"], // Allow searching by job title
       allowedSortFields: ["posted_at", "job_title", "job_location"], // Sort by creation date of the job post
       rangeFields: ["posted_at", "salary"], // Allow filtering by salary range
