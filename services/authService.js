@@ -115,7 +115,7 @@ const authService = {
    */
   async forgotPassword(login_email) {
     const user = await Login.findOne({ where: { login_email } });
-    if (!user) throw new AuthenticationError("User not found");
+    if (!user) return { error: "User not found" };
 
     const resetToken = crypto.randomBytes(20).toString("hex");
     const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
