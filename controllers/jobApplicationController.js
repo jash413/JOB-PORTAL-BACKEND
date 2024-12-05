@@ -259,7 +259,13 @@ exports.getJobApplications = async (req, res) => {
         {
           model: Candidate,
           as: "candidate",
-          attributes: ["can_name", "can_code", "can_profile_img"],
+          attributes: [
+            "can_name",
+            "can_code",
+            "can_email",
+            "can_mobn",
+            "can_resume",
+          ],
           include: [
             {
               model: JobCate,
@@ -388,7 +394,7 @@ exports.getEmployerApplications = async (req, res) => {
             "can_skill",
             "can_email",
             "can_mobn",
-            "can_resume"
+            "can_resume",
           ],
           include: [
             {
