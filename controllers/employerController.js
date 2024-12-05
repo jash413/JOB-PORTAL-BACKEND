@@ -283,12 +283,16 @@ exports.createEmployer = async (req, res) => {
       req.body;
 
     // Check for duplicate email and mobile
-    const duplicateEmail = await Employer.findOne({ where: { cmp_email } });
+    const duplicateEmail = await Login.findOne({
+      where: { login_email: cmp_email },
+    });
     if (duplicateEmail) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
-    const duplicateMobile = await Employer.findOne({ where: { cmp_mobn } });
+    const duplicateMobile = await Login.findOne({
+      where: { login_mobile: cmp_mobn },
+    });
     if (duplicateMobile) {
       return res.status(400).json({ error: "Mobile number already in use" });
     }
@@ -380,15 +384,21 @@ exports.updateEmployer = async (req, res) => {
     }
 
     // Check for duplicate email and mobile, ignoring the current employer's ID
-    const duplicateEmail = await Employer.findOne({
-      where: { cmp_email, cmp_code: { [Op.ne]: employer.cmp_code } },
+    const duplicateEmail = await Login.findOne({
+      where: {
+        login_email: cmp_email,
+        cmp_code: { [Op.ne]: employer.login_id },
+      },
     });
     if (duplicateEmail) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
-    const duplicateMobile = await Employer.findOne({
-      where: { cmp_mobn, cmp_code: { [Op.ne]: employer.cmp_code } },
+    const duplicateMobile = await Login.findOne({
+      where: {
+        login_mobile: cmp_mobn,
+        cmp_code: { [Op.ne]: employer.login_id },
+      },
     });
     if (duplicateMobile) {
       return res.status(400).json({ error: "Mobile number already in use" });

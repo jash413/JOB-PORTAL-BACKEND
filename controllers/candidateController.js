@@ -323,8 +323,12 @@ exports.createCandidate = async (req, res) => {
     const resumeUrl = uploadedFiles.resume || null;
 
     // Check for duplicate email and mobile
-    const emailInUse = await Candidate.findOne({ where: { can_email } });
-    const mobileInUse = await Candidate.findOne({ where: { can_mobn } });
+    const emailInUse = await Login.findOne({
+      where: { login_email: can_email },
+    });
+    const mobileInUse = await Candidate.findOne({
+      where: { login_mobile: can_mobn },
+    });
     if (emailInUse) {
       return res.status(400).json({ error: "Email already in use" });
     }
@@ -472,12 +476,16 @@ exports.updateCandidate = async (req, res) => {
     }
 
     // Check for duplicate email and mobile, ignoring the current candidate's ID
-    const emailInUse = await Candidate.findOne({ where: { can_email } });
-    const mobileInUse = await Candidate.findOne({ where: { can_mobn } });
-    if (emailInUse && emailInUse.can_code !== candidate.can_code) {
+    const emailInUse = await Login.findOne({
+      where: { login_email: can_email },
+    });
+    const mobileInUse = await Login.findOne({
+      where: { login_mobile: can_mobn },
+    });
+    if (emailInUse && emailInUse.login_id !== candidate.login_id) {
       return res.status(400).json({ error: "Email already in use" });
     }
-    if (mobileInUse && mobileInUse.can_code !== candidate.can_code) {
+    if (mobileInUse && mobileInUse.login_id !== candidate.login_id) {
       return res.status(400).json({ error: "Mobile number already in use" });
     }
 
