@@ -1835,6 +1835,10 @@ exports.getJobPostsWithNoAccess = async (req, res) => {
  *                 type: boolean
  *                 description: Filter logins by email verification status
  *                 example: 1
+ *               login_type:
+ *                 type: string
+ *                 description: Filter logins by login type
+ *                 example: CND
  *     responses:
  *       200:
  *         description: List of login data with pagination and filter details
@@ -1889,6 +1893,7 @@ exports.getLoginData = async (req, res) => {
         "user_approval_status",
         "phone_ver_status",
         "email_ver_status",
+        "login_type",
       ],
       searchFields: ["login_name", "login_email"],
       allowedSortFields: [],
