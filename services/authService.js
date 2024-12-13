@@ -495,19 +495,15 @@ const authService = {
   async sendPhoneVerificationOTP(user) {
     try {
       const login_user = await Login.findByPk(user.login_id);
-      const otp = this.generateOTP();
       const otpExpiry = Date.now() + 600000; // OTP valid for 10 minutes
 
-      login_user.phone_otp = otp;
+      const response = await this.sendSMS(login_user.login_mobile);
+
+      login_user.phone_otp = response["IFAS-OTP"];
       login_user.phone_otp_expiry = otpExpiry;
       await login_user.save();
 
-      await this.sendSMS(
-        login_user.login_mobile,
-        `OTP for SAISUN iFAS ERP App is : ${otp}`
-      );
-
-      return otp;
+      return response["IFAS-OTP"];
     } catch (error) {
       console.error("Error sending SMS:", error);
       throw new AuthenticationError("Failed to send SMS");
@@ -539,30 +535,25 @@ const authService = {
   },
 
   /**
-   * Generate 6-digit OTP
-   * @returns {string} 6-digit OTP
-   */
-  generateOTP() {
-    return crypto.randomInt(100000, 999999).toString();
-  },
-
-  /**
    * Send SMS using the provided API
    * @param {string} phoneNumber - Recipient's phone number
-   * @param {string} message - SMS content
    */
-  async sendSMS(phoneNumber, message) {
+  async sendSMS(phoneNumber) {
     try {
       const response = await axios.get(
-        `http://msg.jmdinfotek.in/api/mt/SendSMS?user=${process.env.SMS_API_USER}&password=${process.env.SMS_API_PASSWORD}&senderid=${process.env.SMS_API_SENDER_ID}&channel=Trans&DCS=0&flashsms=0&number=${phoneNumber}&text=${message}&route=07`
+        `${process.env.SMS_API_URL}?user=${phoneNumber}`,
+        {
+          headers: {
+            apikey: `${process.env.SMS_API_KEY}`,
+          },
+        }
       );
 
       if (response.status !== 200) {
         throw new Error("SMS API request failed");
       }
 
-      // You may want to check the response body for any API-specific success indicators
-      // and throw an error if the SMS was not sent successfully
+      return response.data;
     } catch (error) {
       console.error("Error sending SMS:", error);
       throw new AuthenticationError("Failed to send SMS");
