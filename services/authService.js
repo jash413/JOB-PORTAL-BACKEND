@@ -332,179 +332,98 @@ const authService = {
     <title>Verify Your Ifas Job Portal Account</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-        .container {
-            width: 100%;
-            max-width: 28rem;
-        }
-        .card {
-            background-color: white;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            border-radius: 1rem;
-            overflow: hidden;
-            transition: transform 0.5s;
-        }
-        .card:hover {
-            transform: scale(1.05);
-        }
-        .gradient-bar {
-            background: linear-gradient(to right, #ef4444, #ec4899);
-            height: 0.25rem;
-            width: 100%;
-        }
-        .card-content {
-            padding: 2rem;
-        }
-        .logo-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        .logo {
-            height: 3rem;
-            width: auto;
-            filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));
-        }
-        .title {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: #1f2937;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-        .description {
-            color: #4b5563;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            line-height: 1.625;
-        }
-        .verify-button {
-            display: inline-block;
-            background: linear-gradient(to right, #ef4444, #ec4899);
-            color: white;
-            font-weight: 600;
-            padding: 0.75rem 2rem;
-            border-radius: 9999px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            text-decoration: none;
-            width: 100%;
-            max-width: 300px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .verify-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: all 0.6s;
-        }
-        .verify-button:hover::before {
-            left: 100%;
-        }
-        .verify-button:hover {
-            box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.15);
-            transform: translateY(-0.25rem);
-        }
-        .button-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-        .verification-link {
-            background-color: #f9fafb;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .verification-link-text {
-            font-size: 0.875rem;
-            color: #4b5563;
-            text-align: center;
-        }
-        .verification-url {
-            color: #ef4444;
-            word-break: break-all;
-            font-family: monospace;
-        }
-        .footer-text {
-            font-size: 0.75rem;
-            color: #6b7280;
-            text-align: center;
-        }
-        .support-link {
-            color: #ef4444;
-            text-decoration: none;
-        }
-        .support-link:hover {
-            text-decoration: underline;
-        }
+         .verify-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: all 0.6s ease-in-out;
+    }
+    .verify-button:hover::before {
+        left: 100%;
+    }
+    .verify-button:hover {
+        box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.15);
+        transform: translateY(-0.25rem);
+    }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="gradient-bar"></div>
-            
-            <div class="card-content">
-                <div class="logo-container">
-                    <img src="/api/placeholder/120/40" alt="Job Portal Logo" class="logo">
-                    <img src="/api/placeholder/120/40" alt="Company Logo" class="logo">
-                </div>
-                
-                <h2 class="title">
-                    Verify Your Account
-                </h2>
-                
-                <p class="description">
-                    Welcome to your professional journey! Please verify your email to unlock full access to our job portal and start exploring exciting career opportunities.
-                </p>
-                
-                <div class="button-container">
-                    <a href="${verificationUrl}" class="verify-button">
-                        Verify Email Address
-                    </a>
-                </div>
-                
-                <div class="verification-link">
-                    <p class="verification-link-text">
-                        Verification Link:
-                        <br>
-                        <span class="verification-url">
-                            <a href="${verificationUrl}" style="color: #ef4444; text-decoration: none;">
-                                ${verificationUrl}
+<table style="width: 100%; font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 1.5rem; min-height: 100vh;">
+    <tr>
+        <td align="center">
+            <table style="max-width: 28rem; width: 100%; background-color: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border-radius: 1rem; overflow: hidden; transition: transform 0.5s;">
+                <!-- Gradient Bar -->
+                <tr>
+                    <td style="background: linear-gradient(to right, #ef4444, #ec4899); height: 0.25rem; width: 100%;"></td>
+                </tr>
+                <!-- Card Content -->
+                <tr>
+                    <td style="padding: 2rem;">
+                        <!-- Logos -->
+                        <table style="width: 100%; margin-bottom: 2rem;">
+                            <tr>
+                                <td align="left">
+                                    <img src="https://github.com/jash413/JOB-PORTAL-BACKEND/blob/main/assests/init%20logo.png?raw=true" alt="Job Portal Logo" style="height: 3rem; width: auto; filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));">
+                                </td>
+                                <td align="right">
+                                    <img src="https://github.com/jash413/JOB-PORTAL-BACKEND/blob/main/assests/ifas%20logo.jpg?raw=true" alt="Company Logo" style="height: 3rem; width: auto; filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));">
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- Title -->
+                        <h2 style="font-size: 1.875rem; font-weight: 700; color: #1f2937; text-align: center; margin-bottom: 1rem;">
+                            Verify Your Account
+                        </h2>
+                        <!-- Description -->
+                        <p style="color: #4b5563; text-align: center; margin-bottom: 1.5rem; line-height: 1.625;">
+                            Welcome to your professional journey! Please verify your email to unlock full access to our job portal and start exploring exciting career opportunities.
+                        </p>
+                        <!-- Verify Button -->
+                        <div style="text-align: center; margin-bottom: 1.5rem;">
+                            <a href="${verificationUrl}" class="verify-button" style="display: inline-block; background: linear-gradient(to right, #ef4444, #ec4899); color: white; font-weight: 600; padding: 0.75rem 2rem; border-radius: 9999px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center; text-decoration: none; width: 100%; max-width: 300px; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                                Verify Email Address
                             </a>
-                        </span>
-                    </p>
-                </div>
-                
-                <div class="footer-text">
-                    <p>Didn't request this email? <a href="mailto:info@initinfologic.com" class="support-link">Ignore or contact support</a></p>
-                    <p style="margin-top: 0.5rem;">© 2024 INIT INFOLOGIC. All rights reserved.</p>
-                </div>
-            </div>
-            
-            <div class="gradient-bar"></div>
-        </div>
-        
-        <div style="text-align: center; font-size: 0.875rem; color: #4b5563; margin-top: 1rem;">
-            Secure verification powered by <a href="#" style="color: #ef4444; text-decoration: none;">INIT INFOLOGIC</a>
-        </div>
-    </div>
+                        </div>
+                        <!-- Verification Link -->
+                        <table style="width: 100%; background-color: #f9fafb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+                            <tr>
+                                <td style="font-size: 0.875rem; color: #4b5563; text-align: center;">
+                                    Verification Link:
+                                    <br>
+                                    <span style="color: #ef4444; word-break: break-all; font-family: monospace;">
+                                        <a href="${verificationUrl}" style="color: #ef4444; text-decoration: none;">${verificationUrl}</a>
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- Footer -->
+                        <table style="width: 100%; text-align: center;">
+                            <tr>
+                                <td style="font-size: 0.75rem; color: #6b7280;">
+                                    Didn't request this email? <a href="mailto:info@initinfologic.com" style="color: #ef4444; text-decoration: none;">Ignore or contact support</a>
+                                    <br>
+                                    <span style="margin-top: 0.5rem; display: block;">© 2024 INIT INFOLOGIC. All rights reserved.</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- Gradient Bar -->
+                <tr>
+                    <td style="background: linear-gradient(to right, #ef4444, #ec4899); height: 0.25rem; width: 100%;"></td>
+                </tr>
+            </table>
+            <!-- Secure Footer -->
+            <p style="text-align: center; font-size: 0.875rem; color: #4b5563; margin-top: 1rem;">
+                Secure verification powered by <a href="#" style="color: #ef4444; text-decoration: none;">INIT INFOLOGIC</a>
+            </p>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
       `;
