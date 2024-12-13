@@ -324,57 +324,190 @@ const authService = {
 
       // HTML template for the email
       const htmlTemplate = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Email Verification</title>
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif;">
-            <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="padding: 20px 0; text-align: center; background-color: #f4f4f4;">
-                        <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                            <!-- Header -->
-                            <tr>
-                                <td style="padding: 40px 30px; background-color: #4F46E5; text-align: center;">
-                                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">Email Verification</h1>
-                                </td>
-                            </tr>
-                            
-                            <!-- Content -->
-                            <tr>
-                                <td style="padding: 40px 30px;">
-                                    <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">Hello ${
-                                      user.login_email
-                                    },</p>
-                                    <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">Thank you for creating an account. Please verify your email address by clicking the button below:</p>
-                                    <p style="text-align: center; margin: 30px 0;">
-                                        <a href="${verificationUrl}" style="display: inline-block; padding: 14px 30px; background-color: #4F46E5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Verify Email Address</a>
-                                    </p>
-                                    <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">If you didn't create an account, you can safely ignore this email.</p>
-                                    <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">If the button doesn't work, copy and paste this link into your browser:</p>
-                                    <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0; word-break: break-all;">
-                                        <a href="${verificationUrl}" style="color: #4F46E5; text-decoration: none;">${verificationUrl}</a>
-                                    </p>
-                                </td>
-                            </tr>
-                            
-                            <!-- Footer -->
-                            <tr>
-                                <td style="padding: 30px; background-color: #f8f9fa; text-align: center; border-top: 1px solid #e9ecef;">
-                                    <p style="color: #666666; font-size: 14px; margin: 0 0 10px;">This is an automated email, please do not reply.</p>
-                                    <p style="color: #666666; font-size: 12px; margin: 0;">© ${new Date().getFullYear()} WEBWISE SOLUTION. All rights reserved.</p>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-        </body>
-        </html>
-        `;
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Ifas Job Portal Account</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .container {
+            width: 100%;
+            max-width: 28rem;
+        }
+        .card {
+            background-color: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.5s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .gradient-bar {
+            background: linear-gradient(to right, #ef4444, #ec4899);
+            height: 0.25rem;
+            width: 100%;
+        }
+        .card-content {
+            padding: 2rem;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .logo {
+            height: 3rem;
+            width: auto;
+            filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));
+        }
+        .title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .description {
+            color: #4b5563;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            line-height: 1.625;
+        }
+        .verify-button {
+            display: inline-block;
+            background: linear-gradient(to right, #ef4444, #ec4899);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            text-decoration: none;
+            width: 100%;
+            max-width: 300px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .verify-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: all 0.6s;
+        }
+        .verify-button:hover::before {
+            left: 100%;
+        }
+        .verify-button:hover {
+            box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.15);
+            transform: translateY(-0.25rem);
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .verification-link {
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .verification-link-text {
+            font-size: 0.875rem;
+            color: #4b5563;
+            text-align: center;
+        }
+        .verification-url {
+            color: #ef4444;
+            word-break: break-all;
+            font-family: monospace;
+        }
+        .footer-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-align: center;
+        }
+        .support-link {
+            color: #ef4444;
+            text-decoration: none;
+        }
+        .support-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="gradient-bar"></div>
+            
+            <div class="card-content">
+                <div class="logo-container">
+                    <img src="/api/placeholder/120/40" alt="Job Portal Logo" class="logo">
+                    <img src="/api/placeholder/120/40" alt="Company Logo" class="logo">
+                </div>
+                
+                <h2 class="title">
+                    Verify Your Account
+                </h2>
+                
+                <p class="description">
+                    Welcome to your professional journey! Please verify your email to unlock full access to our job portal and start exploring exciting career opportunities.
+                </p>
+                
+                <div class="button-container">
+                    <a href="${verificationUrl}" class="verify-button">
+                        Verify Email Address
+                    </a>
+                </div>
+                
+                <div class="verification-link">
+                    <p class="verification-link-text">
+                        Verification Link:
+                        <br>
+                        <span class="verification-url">
+                            <a href="${verificationUrl}" style="color: #ef4444; text-decoration: none;">
+                                ${verificationUrl}
+                            </a>
+                        </span>
+                    </p>
+                </div>
+                
+                <div class="footer-text">
+                    <p>Didn't request this email? <a href="mailto:info@initinfologic.com" class="support-link">Ignore or contact support</a></p>
+                    <p style="margin-top: 0.5rem;">© 2024 INIT INFOLOGIC. All rights reserved.</p>
+                </div>
+            </div>
+            
+            <div class="gradient-bar"></div>
+        </div>
+        
+        <div style="text-align: center; font-size: 0.875rem; color: #4b5563; margin-top: 1rem;">
+            Secure verification powered by <a href="#" style="color: #ef4444; text-decoration: none;">INIT INFOLOGIC</a>
+        </div>
+    </div>
+</body>
+</html>
+      `;
 
       const mailOptions = {
         from: process.env.EMAIL_USER,
